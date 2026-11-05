@@ -1,0 +1,166 @@
+<Window x:Class="GoshehYar.App.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding [settings_title]}"
+        Width="520" Height="680" MinWidth="440" MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="{Binding FlowDirection}"
+        FontFamily="{Binding FontFamilyName}"
+        Background="{DynamicResource Brush.Background}"
+        Foreground="{DynamicResource Brush.Foreground}">
+
+    <Window.Resources>
+        <Style x:Key="Style.Section" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+            <Setter Property="Margin" Value="0,18,0,6" />
+        </Style>
+        <Style x:Key="Style.Label" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,8,0,3" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Foreground}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Margin" Value="0,8,0,0" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Foreground}" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="Black" />
+            <Setter Property="Padding" Value="6,4" />
+        </Style>
+        <Style TargetType="Slider">
+            <Setter Property="IsSnapToTickEnabled" Value="False" />
+        </Style>
+    </Window.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="22,8,22,22">
+
+            <!-- General -->
+            <TextBlock Style="{StaticResource Style.Section}" Text="{Binding [sec_general]}" />
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_language]}" />
+            <ComboBox ItemsSource="{Binding Languages}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding Language}" />
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_digits]}" />
+            <ComboBox ItemsSource="{Binding DigitStyles}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding Digits}" />
+            <CheckBox Content="{Binding [lbl_startup]}" IsChecked="{Binding RunAtStartup}" />
+
+            <!-- Appearance -->
+            <TextBlock Style="{StaticResource Style.Section}" Text="{Binding [sec_appearance]}" />
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_theme]}" />
+            <ComboBox ItemsSource="{Binding Themes}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding Theme}" />
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_accent]}" />
+            <ListBox ItemsSource="{Binding Accents}" SelectedValuePath="Hex" SelectedValue="{Binding Accent}"
+                     Background="Transparent" BorderThickness="0">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="26" Height="26" CornerRadius="13" Margin="2"
+                                Background="{Binding Swatch}" BorderBrush="{DynamicResource Brush.Muted}"
+                                BorderThickness="1" ToolTip="{Binding Label}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_font]}" />
+            <ComboBox ItemsSource="{Binding FontNames}" SelectedItem="{Binding FontFamilyName}" />
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_opacity]}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="50" /></Grid.ColumnDefinitions>
+                <Slider Minimum="30" Maximum="100" Value="{Binding OpacityPercent}" />
+                <TextBlock Grid.Column="1" Text="{Binding OpacityText}" HorizontalAlignment="Center" />
+            </Grid>
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_icon_size]}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="50" /></Grid.ColumnDefinitions>
+                <Slider Minimum="16" Maximum="40" Value="{Binding IconSize}" />
+                <TextBlock Grid.Column="1" Text="{Binding IconSizeText}" HorizontalAlignment="Center" />
+            </Grid>
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_density]}" />
+            <ComboBox ItemsSource="{Binding Densities}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding Density}" />
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_spacing]}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="50" /></Grid.ColumnDefinitions>
+                <Slider Minimum="0" Maximum="20" Value="{Binding ItemSpacing}" />
+                <TextBlock Grid.Column="1" Text="{Binding ItemSpacingText}" HorizontalAlignment="Center" />
+            </Grid>
+
+            <!-- Panel -->
+            <TextBlock Style="{StaticResource Style.Section}" Text="{Binding [sec_panel]}" />
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_edge]}" />
+            <ComboBox ItemsSource="{Binding Edges}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding Edge}" />
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_alignment]}" />
+            <ComboBox ItemsSource="{Binding Alignments}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding Alignment}" />
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_monitor]}" />
+            <ComboBox ItemsSource="{Binding Monitors}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding Monitor}" />
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_thickness]}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="50" /></Grid.ColumnDefinitions>
+                <Slider Minimum="40" Maximum="120" Value="{Binding Thickness}" />
+                <TextBlock Grid.Column="1" Text="{Binding ThicknessText}" HorizontalAlignment="Center" />
+            </Grid>
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_length]}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="50" /></Grid.ColumnDefinitions>
+                <Slider Minimum="20" Maximum="100" Value="{Binding LengthPercent}" />
+                <TextBlock Grid.Column="1" Text="{Binding LengthText}" HorizontalAlignment="Center" />
+            </Grid>
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_margin]}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="50" /></Grid.ColumnDefinitions>
+                <Slider Minimum="0" Maximum="40" Value="{Binding EdgeMargin}" />
+                <TextBlock Grid.Column="1" Text="{Binding EdgeMarginText}" HorizontalAlignment="Center" />
+            </Grid>
+
+            <!-- Behaviour -->
+            <TextBlock Style="{StaticResource Style.Section}" Text="{Binding [sec_behavior]}" />
+            <CheckBox Content="{Binding [lbl_always_on_top]}" IsChecked="{Binding AlwaysOnTop}" />
+            <CheckBox Content="{Binding [lbl_auto_hide]}" IsChecked="{Binding AutoHide}" />
+            <CheckBox Content="{Binding [lbl_pinned]}" IsChecked="{Binding Pinned}" />
+            <CheckBox Content="{Binding [lbl_fullscreen]}" IsChecked="{Binding PauseInFullscreen}" />
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_auto_hide_delay]}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="60" /></Grid.ColumnDefinitions>
+                <Slider Minimum="300" Maximum="5000" Value="{Binding AutoHideDelayMs}" />
+                <TextBlock Grid.Column="1" Text="{Binding AutoHideDelayText}" HorizontalAlignment="Center" />
+            </Grid>
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_strip_size]}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="50" /></Grid.ColumnDefinitions>
+                <Slider Minimum="3" Maximum="20" Value="{Binding StripSize}" />
+                <TextBlock Grid.Column="1" Text="{Binding StripSizeText}" HorizontalAlignment="Center" />
+            </Grid>
+
+            <!-- Hotkey -->
+            <TextBlock Style="{StaticResource Style.Section}" Text="{Binding [sec_hotkey]}" />
+            <CheckBox Content="{Binding [lbl_hotkey_enabled]}" IsChecked="{Binding HotkeyEnabled}" />
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_hotkey]}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <TextBox x:Name="HotkeyBox" Text="{Binding HotkeyText, Mode=OneWay}" IsReadOnly="True"
+                         FlowDirection="LeftToRight" Padding="8,5" FontSize="14"
+                         PreviewKeyDown="HotkeyBox_PreviewKeyDown" />
+                <Button Grid.Column="1" Content="{Binding [btn_hotkey_reset]}" Command="{Binding ResetHotkeyCommand}"
+                        Margin="8,0,0,0" Padding="12,5" />
+            </Grid>
+            <TextBlock Text="{Binding HotkeyMessage}" Foreground="{DynamicResource Brush.Muted}" TextWrapping="Wrap" Margin="0,5,0,0" />
+
+            <!-- Reset + about -->
+            <Button Content="{Binding [btn_reset_all]}" Command="{Binding ResetAllCommand}" Margin="0,26,0,0" Padding="10,8" />
+            <TextBlock Text="{Binding VersionText}" Foreground="{DynamicResource Brush.Muted}" HorizontalAlignment="Center" Margin="0,18,0,0" />
+            <TextBlock Text="{Binding [about_credit]}" Foreground="{DynamicResource Brush.Muted}" HorizontalAlignment="Center" Margin="0,2,0,0" />
+        </StackPanel>
+    </ScrollViewer>
+</Window>

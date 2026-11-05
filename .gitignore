@@ -1,0 +1,25 @@
+## Build output
+bin/
+obj/
+publish/
+dist/
+artifacts/
+TestResults/
+
+## IDE
+.vs/
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Secrets / personal data (never commit)
+*.pfx
+*.snk
+.env
+appsettings.Local.json
+settings.json

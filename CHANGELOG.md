@@ -1,5 +1,8 @@
 # Changelog
 
+## [Unreleased] - Phase 2 (tools)
+- Screenshot, audio recorder, music player, notes (SQLite) with reminders, backup/restore system
+
 ## [Unreleased] - Phase 1 (core)
 - Floating panel on any screen edge (left/right/top/bottom), corner/center alignment, multi-monitor, DPI aware
 - Auto-hide with a thin handle, reveal on mouse approach, pin, always-on-top, full-screen awareness

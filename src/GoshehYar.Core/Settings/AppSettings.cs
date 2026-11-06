@@ -76,6 +76,32 @@ public sealed class AppSettings
     public bool HotkeyEnabled { get; set; } = true;
     public string Hotkey { get; set; } = DefaultHotkey;
 
+    // ----- Screenshot -----
+    /// <summary>Empty = Pictures\GoshehYar\Screenshots.</summary>
+    public string ScreenshotFolder { get; set; } = "";
+    public ImageFormat ScreenshotFormat { get; set; } = ImageFormat.Png;
+    public int ScreenshotDelaySeconds { get; set; }
+
+    // ----- Audio recorder -----
+    /// <summary>Empty = Music\GoshehYar\Recordings.</summary>
+    public string RecordingsFolder { get; set; } = "";
+    public AudioFormat RecordingFormat { get; set; } = AudioFormat.Wav;
+    public string MicrophoneName { get; set; } = "";
+
+    // ----- Music player -----
+    public double MusicVolume { get; set; } = 0.7;
+    public bool MusicShuffle { get; set; }
+    public RepeatMode MusicRepeat { get; set; } = RepeatMode.All;
+    public string LastPlaylistId { get; set; } = "";
+
+    // ----- Backup -----
+    public bool BackupAutoEnabled { get; set; } = true;
+    public BackupFrequency BackupFrequency { get; set; } = BackupFrequency.Daily;
+    /// <summary>Empty = %LOCALAPPDATA%\GoshehYar\backups.</summary>
+    public string BackupFolder { get; set; } = "";
+    public int BackupKeepCount { get; set; } = 7;
+    public DateTime? LastBackupUtc { get; set; }
+
     // ----- Modules (used from phase 2 on) -----
     public Dictionary<string, bool> ModulesEnabled { get; set; } = new();
     public List<string> ModuleOrder { get; set; } = new();
@@ -121,6 +147,19 @@ public sealed class AppSettings
         {
             Hotkey = gesture.ToString();
         }
+
+        if (!Enum.IsDefined(ScreenshotFormat)) ScreenshotFormat = ImageFormat.Png;
+        if (!Enum.IsDefined(RecordingFormat)) RecordingFormat = AudioFormat.Wav;
+        if (!Enum.IsDefined(MusicRepeat)) MusicRepeat = RepeatMode.All;
+        if (!Enum.IsDefined(BackupFrequency)) BackupFrequency = BackupFrequency.Daily;
+        ScreenshotFolder ??= "";
+        RecordingsFolder ??= "";
+        MicrophoneName ??= "";
+        LastPlaylistId ??= "";
+        BackupFolder ??= "";
+        ScreenshotDelaySeconds = (int)Clamp(ScreenshotDelaySeconds, 0, 30);
+        MusicVolume = Clamp(MusicVolume, 0, 1);
+        BackupKeepCount = (int)Clamp(BackupKeepCount, 1, 50);
 
         ModulesEnabled ??= new Dictionary<string, bool>();
         ModuleOrder ??= new List<string>();

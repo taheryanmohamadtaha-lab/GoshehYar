@@ -18,6 +18,28 @@ public sealed record Option<T>(T Value, string Label);
 
 public sealed record AccentOption(string Hex, string Label, Brush Swatch);
 
+/// <summary>One tool on/off switch in the settings window.</summary>
+public sealed class ModuleToggle : ViewModelBase
+{
+    private readonly Func<bool> _get;
+    private readonly Action<bool> _set;
+
+    public ModuleToggle(string title, Func<bool> get, Action<bool> set)
+    {
+        Title = title;
+        _get = get;
+        _set = set;
+    }
+
+    public string Title { get; }
+
+    public bool IsOn
+    {
+        get => _get();
+        set { _set(value); OnPropertyChanged(); }
+    }
+}
+
 /// <summary>Everything the settings window binds to. Changes apply live and are saved automatically.</summary>
 public sealed class SettingsViewModel : ViewModelBase, IDisposable
 {
@@ -84,6 +106,7 @@ public sealed class SettingsViewModel : ViewModelBase, IDisposable
     public IReadOnlyList<Option<DockAlignment>> Alignments { get; private set; } = Array.Empty<Option<DockAlignment>>();
     public IReadOnlyList<Option<string>> Monitors { get; private set; } = Array.Empty<Option<string>>();
     public IReadOnlyList<string> FontNames { get; }
+    public IReadOnlyList<ModuleToggle> ModuleToggles { get; private set; } = Array.Empty<ModuleToggle>();
 
     private void BuildOptions()
     {
@@ -127,6 +150,18 @@ public sealed class SettingsViewModel : ViewModelBase, IDisposable
             new Option<DockAlignment>(DockAlignment.Center, T("align_center")),
             new Option<DockAlignment>(DockAlignment.End, T("align_end")),
         };
+
+        ModuleToggles = _controller.Modules.All
+            .OrderBy(m => m.DefaultOrder)
+            .Select(m =>
+            {
+                var id = m.Id;
+                return new ModuleToggle(
+                    T(m.TitleKey),
+                    () => !S.ModulesEnabled.TryGetValue(id, out var on) || on,
+                    value => Apply(s => s.ModulesEnabled[id] = value));
+            })
+            .ToList();
 
         var monitors = new List<Option<string>> { new("", T("monitor_primary")) };
         var index = 1;

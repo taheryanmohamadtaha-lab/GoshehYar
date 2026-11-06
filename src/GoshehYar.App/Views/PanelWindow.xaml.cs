@@ -127,6 +127,35 @@ public partial class PanelWindow : Window
         }
     }
 
+    /// <summary>Hides the panel while a screenshot is taken; disposing the result shows it again.</summary>
+    public IDisposable HideTemporarily()
+    {
+        var wasVisible = IsVisible;
+        if (wasVisible) Hide();
+        return new RestoreOnDispose(() =>
+        {
+            if (wasVisible && _state != PanelState.Hidden && !_suppressedByFullscreen)
+            {
+                Show();
+                ApplyLayout();
+                ApplyGeometry();
+            }
+        });
+    }
+
+    private sealed class RestoreOnDispose : IDisposable
+    {
+        private Action? _restore;
+
+        public RestoreOnDispose(Action restore) => _restore = restore;
+
+        public void Dispose()
+        {
+            _restore?.Invoke();
+            _restore = null;
+        }
+    }
+
     /// <summary>Called when a full-screen app / game / presentation starts or ends.</summary>
     public void OnFullscreenChanged(bool fullscreen)
     {
@@ -257,6 +286,18 @@ public partial class PanelWindow : Window
 
     // ------------------------------------------------------------------- layout
 
+    /// <summary>The configured length, but never shorter than what all buttons need.</summary>
+    private double EffectiveLengthPercent(MonitorInfo monitor)
+    {
+        var s = Settings;
+        var edgeLength = PanelGeometry.IsVertical(s.Edge) ? monitor.WorkArea.Height : monitor.WorkArea.Width;
+        if (edgeLength <= 0) return s.PanelLengthPercent;
+
+        var neededDip = _viewModel.Items.Count * (_viewModel.ButtonSize + s.ItemSpacing) + 14;
+        var neededPercent = neededDip * monitor.Scale / edgeLength * 100.0;
+        return Math.Min(100, Math.Max(s.PanelLengthPercent, neededPercent));
+    }
+
     /// <summary>Moves/resizes the window for the current Reveal value (physical pixels).</summary>
     private void ApplyGeometry()
     {
@@ -271,7 +312,7 @@ public partial class PanelWindow : Window
             s.Edge,
             s.Alignment,
             s.PanelThickness * scale,
-            s.PanelLengthPercent,
+            EffectiveLengthPercent(monitor),
             s.EdgeMargin * scale,
             s.HiddenStripSize * scale,
             Reveal);
@@ -296,7 +337,7 @@ public partial class PanelWindow : Window
         if (dpi <= 0) dpi = 1;
 
         var thickness = s.PanelThickness * scale;
-        var length = PanelGeometry.GetShownLength(monitor.WorkArea, s.Edge, s.PanelLengthPercent, s.EdgeMargin * scale);
+        var length = PanelGeometry.GetShownLength(monitor.WorkArea, s.Edge, EffectiveLengthPercent(monitor), s.EdgeMargin * scale);
         var strip = s.HiddenStripSize * scale;
 
         var vertical = PanelGeometry.IsVertical(s.Edge);

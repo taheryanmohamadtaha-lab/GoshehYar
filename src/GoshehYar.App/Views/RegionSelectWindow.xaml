@@ -1,0 +1,28 @@
+<Window x:Class="GoshehYar.App.Views.RegionSelectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Background="Black"
+        Cursor="Cross"
+        WindowStartupLocation="Manual"
+        Left="0" Top="0" Width="400" Height="300">
+    <Grid x:Name="Surface" Background="Black" MouseLeftButtonDown="OnMouseDown" MouseMove="OnMouseMove"
+          MouseLeftButtonUp="OnMouseUp" MouseRightButtonDown="OnCancel">
+        <Image x:Name="BaseImage" Stretch="Fill" />
+        <Rectangle Fill="#99000000" IsHitTestVisible="False" />
+        <Image x:Name="BrightImage" Stretch="Fill" IsHitTestVisible="False" />
+        <Canvas IsHitTestVisible="False">
+            <Rectangle x:Name="Outline" Stroke="#FF4C9AFF" StrokeThickness="2" Visibility="Collapsed" />
+            <Border x:Name="SizeBadge" Background="#CC000000" CornerRadius="4" Padding="6,2" Visibility="Collapsed">
+                <TextBlock x:Name="SizeText" Foreground="White" FontSize="13" />
+            </Border>
+        </Canvas>
+        <Border x:Name="Hint" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,40,0,0"
+                Background="#CC000000" CornerRadius="8" Padding="14,8" IsHitTestVisible="False">
+            <TextBlock x:Name="HintText" Foreground="White" FontSize="15" />
+        </Border>
+    </Grid>
+</Window>

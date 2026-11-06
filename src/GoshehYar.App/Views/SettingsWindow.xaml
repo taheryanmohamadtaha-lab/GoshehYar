@@ -143,6 +143,16 @@
                 <TextBlock Grid.Column="1" Text="{Binding StripSizeText}" HorizontalAlignment="Center" />
             </Grid>
 
+            <!-- Tools -->
+            <TextBlock Style="{StaticResource Style.Section}" Text="{Binding [sec_tools]}" />
+            <ItemsControl ItemsSource="{Binding ModuleToggles}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox Content="{Binding Title}" IsChecked="{Binding IsOn}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
             <!-- Hotkey -->
             <TextBlock Style="{StaticResource Style.Section}" Text="{Binding [sec_hotkey]}" />
             <CheckBox Content="{Binding [lbl_hotkey_enabled]}" IsChecked="{Binding HotkeyEnabled}" />

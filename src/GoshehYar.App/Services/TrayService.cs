@@ -40,7 +40,8 @@ public sealed class TrayService : IDisposable
     {
         var lang = _controller.Settings.Current.Language;
 
-        _icon.Text = Loc.Get("app_name", lang);
+        var text = Loc.Get("app_name", lang) + (_recording ? " - " + Loc.Get("tray_recording", lang) : "");
+        _icon.Text = text.Length > 60 ? text[..60] : text;
         _menu.RightToLeft = lang == AppLanguage.Persian ? WinForms.RightToLeft.Yes : WinForms.RightToLeft.No;
         _menu.Items.Clear();
         _menu.Items.Add(Loc.Get("tray_toggle", lang), null, (_, _) => _controller.Panel.Toggle());
@@ -50,6 +51,15 @@ public sealed class TrayService : IDisposable
         _menu.Items.Add(Loc.Get("tray_restart", lang), null, (_, _) => _controller.Restart());
         _menu.Items.Add(new WinForms.ToolStripSeparator());
         _menu.Items.Add(Loc.Get("tray_exit", lang), null, (_, _) => _controller.Exit());
+    }
+
+    private bool _recording;
+
+    /// <summary>While recording the tray tooltip says so, so a recording is never hidden from the user.</summary>
+    public void SetRecording(bool recording)
+    {
+        _recording = recording;
+        Refresh();
     }
 
     public void ShowBalloon(string text)

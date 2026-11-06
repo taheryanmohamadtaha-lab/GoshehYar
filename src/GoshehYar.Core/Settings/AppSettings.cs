@@ -81,6 +81,7 @@ public sealed class AppSettings
     public string ScreenshotFolder { get; set; } = "";
     public ImageFormat ScreenshotFormat { get; set; } = ImageFormat.Png;
     public int ScreenshotDelaySeconds { get; set; }
+    public bool ScreenshotAutoSave { get; set; } = true;
 
     // ----- Audio recorder -----
     /// <summary>Empty = Music\GoshehYar\Recordings.</summary>

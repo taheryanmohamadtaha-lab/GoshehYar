@@ -1,0 +1,103 @@
+<Window x:Class="GoshehYar.App.Views.ScreenshotWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding [mod_screenshot]}"
+        Width="580" Height="680" MinWidth="480" MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="{Binding FlowDirection}"
+        Background="{DynamicResource Brush.Background}"
+        Foreground="{DynamicResource Brush.Foreground}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- capture modes -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Button Grid.Row="0" Grid.Column="0" Margin="0,0,4,8" Content="{Binding [shot_full]}" Command="{Binding CaptureFullCommand}" />
+            <Button Grid.Row="0" Grid.Column="1" Margin="4,0,0,8" Content="{Binding [shot_region]}" Command="{Binding CaptureRegionCommand}" />
+
+            <DockPanel Grid.Row="1" Grid.Column="0" Margin="0,0,4,8">
+                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{Binding [shot_monitor_btn]}" Command="{Binding CaptureMonitorCommand}" />
+                <ComboBox ItemsSource="{Binding Monitors}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding SelectedMonitor}" />
+            </DockPanel>
+
+            <DockPanel Grid.Row="1" Grid.Column="1" Margin="4,0,0,8">
+                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{Binding [shot_window_btn]}" Command="{Binding CaptureWindowCommand}" />
+                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Padding="9,6"
+                        ToolTip="{Binding [shot_refresh_windows]}" Command="{Binding RefreshWindowsCommand}" />
+                <ComboBox ItemsSource="{Binding Windows}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding SelectedWindow}" />
+            </DockPanel>
+
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="40" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,10,0" Text="{Binding [shot_delay]}" />
+                    <Slider Grid.Column="1" Minimum="0" Maximum="30" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Delay}" />
+                    <TextBlock Grid.Column="2" HorizontalAlignment="Center" Text="{Binding DelayText}" />
+                </Grid>
+                <DockPanel Margin="0,8,0,0">
+                    <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0" Text="{Binding [shot_format]}" />
+                    <ComboBox DockPanel.Dock="Left" Width="90" ItemsSource="{Binding Formats}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding Format}" />
+                    <CheckBox Margin="16,0,0,0" VerticalAlignment="Center" Content="{Binding [shot_autosave]}" IsChecked="{Binding AutoSave}" />
+                </DockPanel>
+            </StackPanel>
+        </Grid>
+
+        <!-- folder -->
+        <DockPanel Grid.Row="1" Margin="0,10,0,10">
+            <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{Binding [btn_change]}" Command="{Binding BrowseFolderCommand}" />
+            <TextBlock VerticalAlignment="Center" Text="{Binding FolderText}" TextTrimming="CharacterEllipsis" FlowDirection="LeftToRight"
+                       Foreground="{DynamicResource Brush.Muted}" ToolTip="{Binding FolderText}" />
+        </DockPanel>
+
+        <!-- preview -->
+        <Border Grid.Row="2" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="8">
+            <Grid>
+                <Image Source="{Binding Preview}" Stretch="Uniform" Margin="6" />
+                <TextBlock Text="{Binding [shot_no_preview]}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="{DynamicResource Brush.Muted}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasImage}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </Border>
+
+        <TextBlock Grid.Row="3" Margin="0,8,0,0" Text="{Binding InfoText}" Foreground="{DynamicResource Brush.Muted}" HorizontalAlignment="Center" />
+
+        <StackPanel Grid.Row="4" Margin="0,10,0,0">
+            <UniformGrid Rows="1">
+                <Button Margin="0,0,4,0" Content="{Binding [btn_save]}" Command="{Binding SaveCommand}" IsEnabled="{Binding HasImage}" />
+                <Button Margin="4,0,4,0" Content="{Binding [btn_copy]}" Command="{Binding CopyCommand}" IsEnabled="{Binding HasImage}" />
+                <Button Margin="4,0,0,0" Content="{Binding [btn_open_folder]}" Command="{Binding OpenFolderCommand}" />
+            </UniformGrid>
+            <TextBlock Margin="0,10,0,0" Text="{Binding Status}" TextWrapping="Wrap" Foreground="{DynamicResource Brush.Accent}" />
+        </StackPanel>
+    </Grid>
+</Window>

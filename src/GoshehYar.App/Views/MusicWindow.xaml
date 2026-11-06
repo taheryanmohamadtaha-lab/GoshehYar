@@ -1,0 +1,115 @@
+<Window x:Class="GoshehYar.App.Views.MusicWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding [mod_music]}"
+        Width="480" SizeToContent="Height" MinHeight="260"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="{Binding FlowDirection}"
+        Background="{DynamicResource Brush.Background}"
+        Foreground="{DynamicResource Brush.Foreground}">
+    <Window.Resources>
+        <Style x:Key="Style.Glyph" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Width" Value="42" />
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="3,0" />
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="16">
+
+        <!-- now playing -->
+        <Border Background="{DynamicResource Brush.Surface}" CornerRadius="12" Padding="14"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+            <StackPanel>
+                <TextBlock Text="{Binding NowTitle}" FontSize="17" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" FlowDirection="LeftToRight" />
+                <TextBlock Text="{Binding NowInfo}" Style="{StaticResource Style.Muted}" FontSize="12" Margin="0,2,0,8" />
+
+                <Slider x:Name="SeekSlider" Minimum="0" Maximum="{Binding DurationSeconds}" Value="{Binding PositionSeconds, Mode=TwoWay}"
+                        IsMoveToPointEnabled="True" FlowDirection="LeftToRight"
+                        PreviewMouseLeftButtonDown="OnSeekDown" PreviewMouseLeftButtonUp="OnSeekUp" LostMouseCapture="OnSeekUp" />
+                <DockPanel FlowDirection="LeftToRight">
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding DurationText}" Style="{StaticResource Style.Muted}" FontSize="12" />
+                    <TextBlock Text="{Binding PositionText}" Style="{StaticResource Style.Muted}" FontSize="12" />
+                </DockPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0" FlowDirection="LeftToRight">
+                    <Button Style="{StaticResource Style.Glyph}" Content="&#xE8B1;" ToolTip="{Binding [music_shuffle]}" Command="{Binding ToggleShuffleCommand}" />
+                    <Button Style="{StaticResource Style.Glyph}" Content="&#xE892;" ToolTip="{Binding [music_prev]}" Command="{Binding PreviousCommand}" />
+                    <Button Style="{StaticResource Style.Glyph}" Content="{Binding PlayGlyph}" ToolTip="{Binding [music_play_pause]}" Command="{Binding PlayPauseCommand}" Width="54" />
+                    <Button Style="{StaticResource Style.Glyph}" Content="&#xE893;" ToolTip="{Binding [music_next]}" Command="{Binding NextCommand}" />
+                    <Button Style="{StaticResource Style.Glyph}" Content="{Binding RepeatGlyph}" ToolTip="{Binding RepeatTip}" Command="{Binding CycleRepeatCommand}" />
+                </StackPanel>
+
+                <TextBlock Margin="0,6,0,0" HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.Accent}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsShuffle}" Value="True">
+                                    <Setter Property="Text" Value="&#xE8B1;" />
+                                    <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <DockPanel Margin="0,4,0,0" FlowDirection="LeftToRight">
+                    <TextBlock DockPanel.Dock="Left" FontFamily="Segoe MDL2 Assets" Text="&#xE767;" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <Button DockPanel.Dock="Right" Margin="8,0,0,0" Padding="9,5" FontFamily="Segoe MDL2 Assets" Content="&#xE73F;"
+                            ToolTip="{Binding [music_compact]}" Command="{Binding ToggleCompactCommand}" />
+                    <Slider Minimum="0" Maximum="100" Value="{Binding VolumePercent}" VerticalAlignment="Center" />
+                </DockPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- playlist area (hidden in compact mode) -->
+        <StackPanel Visibility="{Binding ShowList, Converter={StaticResource BoolToVisibility}}" Margin="0,12,0,0">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Margin="4,0,0,0" Padding="9,5" FontFamily="Segoe MDL2 Assets" Content="&#xE74D;"
+                        ToolTip="{Binding [music_delete_playlist]}" Command="{Binding DeletePlaylistCommand}" />
+                <Button DockPanel.Dock="Right" Margin="4,0,0,0" Padding="9,5" FontFamily="Segoe MDL2 Assets" Content="&#xE70F;"
+                        ToolTip="{Binding [music_rename_playlist]}" Command="{Binding RenamePlaylistCommand}" />
+                <Button DockPanel.Dock="Right" Margin="4,0,0,0" Padding="9,5" FontFamily="Segoe MDL2 Assets" Content="&#xE710;"
+                        ToolTip="{Binding [music_new_playlist]}" Command="{Binding NewPlaylistCommand}" />
+                <ComboBox ItemsSource="{Binding PlaylistOptions}" DisplayMemberPath="Label" SelectedValuePath="Value"
+                          SelectedValue="{Binding SelectedPlaylistId}" />
+            </DockPanel>
+
+            <ListBox Height="230" Margin="0,8,0,0" ItemsSource="{Binding Tracks}" SelectedItem="{Binding SelectedTrack}"
+                     MouseDoubleClick="OnTrackDoubleClick" HorizontalContentAlignment="Stretch">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <DockPanel Margin="2,3">
+                            <TextBlock DockPanel.Dock="Left" Width="28" Text="{Binding Number}" Foreground="{DynamicResource Brush.Muted}" />
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding Extension}" Foreground="{DynamicResource Brush.Muted}" FontSize="11" Margin="8,0,0,0" />
+                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FlowDirection="LeftToRight">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+                                                <Setter Property="FontWeight" Value="SemiBold" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </DockPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <UniformGrid Rows="1" Margin="0,8,0,0">
+                <Button Margin="0,0,4,0" Content="{Binding [music_add_files]}" Command="{Binding AddFilesCommand}" />
+                <Button Margin="4,0,4,0" Content="{Binding [music_add_folder]}" Command="{Binding AddFolderCommand}" />
+                <Button Margin="4,0,0,0" Content="{Binding [music_remove]}" Command="{Binding RemoveCommand}" />
+            </UniformGrid>
+        </StackPanel>
+
+        <TextBlock Margin="0,10,0,0" Text="{Binding Status}" TextWrapping="Wrap" Foreground="{DynamicResource Brush.Accent}" />
+    </StackPanel>
+</Window>

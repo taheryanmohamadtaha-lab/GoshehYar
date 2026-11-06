@@ -1,0 +1,83 @@
+<Window x:Class="GoshehYar.App.Views.BackupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding [mod_backup]}"
+        Width="560" Height="640" MinWidth="480" MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="{Binding FlowDirection}"
+        Background="{DynamicResource Brush.Background}"
+        Foreground="{DynamicResource Brush.Foreground}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Style="{StaticResource Style.Muted}" Text="{Binding [backup_intro]}" />
+
+        <!-- folder -->
+        <StackPanel Grid.Row="1" Margin="0,12,0,0">
+            <TextBlock Text="{Binding [backup_folder]}" Margin="0,0,0,3" />
+            <TextBlock Text="{Binding FolderText}" TextTrimming="CharacterEllipsis" FlowDirection="LeftToRight"
+                       Foreground="{DynamicResource Brush.Muted}" ToolTip="{Binding FolderText}" />
+            <UniformGrid Rows="1" Margin="0,6,0,0">
+                <Button Margin="0,0,4,0" Content="{Binding [btn_change]}" Command="{Binding BrowseFolderCommand}" />
+                <Button Margin="4,0,4,0" Content="{Binding [backup_default_folder]}" Command="{Binding UseDefaultFolderCommand}" />
+                <Button Margin="4,0,0,0" Content="{Binding [btn_open_folder]}" Command="{Binding OpenFolderCommand}" />
+            </UniformGrid>
+        </StackPanel>
+
+        <!-- schedule -->
+        <StackPanel Grid.Row="2" Margin="0,14,0,0">
+            <CheckBox Content="{Binding [backup_auto]}" IsChecked="{Binding AutoEnabled}" />
+            <DockPanel Margin="0,8,0,0">
+                <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0" Text="{Binding [backup_frequency]}" />
+                <ComboBox Width="140" HorizontalAlignment="Left" ItemsSource="{Binding Frequencies}" DisplayMemberPath="Label"
+                          SelectedValuePath="Value" SelectedValue="{Binding Frequency}" />
+            </DockPanel>
+            <Grid Margin="0,8,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="40" />
+                </Grid.ColumnDefinitions>
+                <TextBlock VerticalAlignment="Center" Margin="0,0,10,0" Text="{Binding [backup_keep]}" />
+                <Slider Grid.Column="1" Minimum="1" Maximum="30" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding KeepCount}" />
+                <TextBlock Grid.Column="2" HorizontalAlignment="Center" Text="{Binding KeepCountText}" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <TextBlock Text="{Binding [backup_last]}" Style="{StaticResource Style.Muted}" />
+                <TextBlock Text=" " />
+                <TextBlock Text="{Binding LastBackupText}" Style="{StaticResource Style.Muted}" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- list -->
+        <Grid Grid.Row="3" Margin="0,12,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock Text="{Binding [backup_list]}" FontWeight="SemiBold" Margin="0,0,0,4" />
+            <ListBox Grid.Row="1" ItemsSource="{Binding Backups}" SelectedItem="{Binding Selected}" DisplayMemberPath="Text" />
+        </Grid>
+
+        <!-- actions -->
+        <StackPanel Grid.Row="4" Margin="0,10,0,0" IsEnabled="{Binding IsIdle}">
+            <UniformGrid Rows="1">
+                <Button Margin="0,0,4,0" Content="{Binding [backup_now]}" Command="{Binding BackupNowCommand}" />
+                <Button Margin="4,0,4,0" Content="{Binding [backup_export_zip]}" Command="{Binding ExportZipCommand}" />
+            </UniformGrid>
+            <UniformGrid Rows="1" Margin="0,8,0,0">
+                <Button Margin="0,0,4,0" Content="{Binding [backup_restore_selected]}" Command="{Binding RestoreSelectedCommand}" />
+                <Button Margin="4,0,0,0" Content="{Binding [backup_restore_file]}" Command="{Binding RestoreFileCommand}" />
+            </UniformGrid>
+        </StackPanel>
+
+        <TextBlock Grid.Row="5" Margin="0,10,0,0" Text="{Binding Status}" TextWrapping="Wrap" Foreground="{DynamicResource Brush.Accent}" />
+    </Grid>
+</Window>

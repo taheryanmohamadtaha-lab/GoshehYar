@@ -1,0 +1,118 @@
+<Window x:Class="GoshehYar.App.Views.RecorderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding [mod_recorder]}"
+        Width="540" Height="660" MinWidth="460" MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="{Binding FlowDirection}"
+        Background="{DynamicResource Brush.Background}"
+        Foreground="{DynamicResource Brush.Foreground}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- big status area: the recording state is always obvious -->
+        <Border Grid.Row="0" Background="{DynamicResource Brush.Surface}" CornerRadius="12" Padding="16"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Ellipse Width="16" Height="16" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="#808080" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRecording}" Value="True">
+                                        <Setter Property="Fill" Value="#FFE5393D" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsPaused}" Value="True">
+                                        <Setter Property="Fill" Value="#FFFFB020" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="{Binding StateText}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </StackPanel>
+                <TextBlock Text="{Binding ElapsedText}" FontSize="40" FontWeight="Light" HorizontalAlignment="Center"
+                           FlowDirection="LeftToRight" Margin="0,6,0,6" />
+                <ProgressBar Height="10" Minimum="0" Maximum="100" Value="{Binding LevelPercent}"
+                             Foreground="{DynamicResource Brush.Accent}" Background="{DynamicResource Brush.Background}"
+                             BorderThickness="0" FlowDirection="LeftToRight" />
+            </StackPanel>
+        </Border>
+
+        <UniformGrid Grid.Row="1" Rows="1" Margin="0,12,0,0">
+            <Button Margin="0,0,4,0" Content="{Binding [rec_start]}" Command="{Binding StartCommand}" IsEnabled="{Binding IsIdle}" />
+            <Button Margin="4,0,4,0" Content="{Binding PauseResumeText}" Command="{Binding PauseResumeCommand}" IsEnabled="{Binding IsActive}" />
+            <Button Margin="4,0,0,0" Content="{Binding [rec_stop]}" Command="{Binding StopCommand}" IsEnabled="{Binding IsActive}" />
+        </UniformGrid>
+
+        <!-- settings -->
+        <StackPanel Grid.Row="2" Margin="0,12,0,0">
+            <TextBlock Text="{Binding [rec_mic]}" Margin="0,0,0,3" />
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Padding="9,6"
+                        ToolTip="{Binding [rec_refresh_mics]}" Command="{Binding RefreshMicsCommand}" />
+                <ComboBox ItemsSource="{Binding Microphones}" SelectedItem="{Binding SelectedMic}" IsEnabled="{Binding IsIdle}" />
+            </DockPanel>
+
+            <Grid Margin="0,8,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Margin="0,0,8,0">
+                    <TextBlock Text="{Binding [rec_file_name]}" Margin="0,0,0,3" />
+                    <TextBox Text="{Binding FileName, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsIdle}" FlowDirection="LeftToRight" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding [rec_format]}" Margin="0,0,0,3" />
+                    <ComboBox ItemsSource="{Binding Formats}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding Format}" IsEnabled="{Binding IsIdle}" />
+                </StackPanel>
+            </Grid>
+
+            <DockPanel Margin="0,8,0,0">
+                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{Binding [btn_change]}" Command="{Binding BrowseFolderCommand}" />
+                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{Binding [btn_open_folder]}" Command="{Binding OpenFolderCommand}" />
+                <TextBlock VerticalAlignment="Center" Text="{Binding FolderText}" TextTrimming="CharacterEllipsis" FlowDirection="LeftToRight"
+                           Foreground="{DynamicResource Brush.Muted}" ToolTip="{Binding FolderText}" />
+            </DockPanel>
+        </StackPanel>
+
+        <TextBlock Grid.Row="3" Margin="0,14,0,4" Text="{Binding [rec_list]}" FontWeight="SemiBold" />
+
+        <ListBox Grid.Row="4" ItemsSource="{Binding Recordings}" HorizontalContentAlignment="Stretch">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="2,3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FlowDirection="LeftToRight" />
+                            <TextBlock Text="{Binding Info}" Foreground="{DynamicResource Brush.Muted}" FontSize="11" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Margin="6,0,0,0" Padding="9,5" FontFamily="Segoe MDL2 Assets" Content="{Binding PlayGlyph}"
+                                ToolTip="{Binding DataContext[rec_play], RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                Command="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                CommandParameter="{Binding}" />
+                        <Button Grid.Column="2" Margin="6,0,0,0" Padding="9,5" FontFamily="Segoe MDL2 Assets" Content="&#xE74D;"
+                                ToolTip="{Binding DataContext[rec_delete], RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                CommandParameter="{Binding}" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <TextBlock Grid.Row="5" Margin="0,10,0,0" Text="{Binding Status}" TextWrapping="Wrap" Foreground="{DynamicResource Brush.Accent}" />
+    </Grid>
+</Window>

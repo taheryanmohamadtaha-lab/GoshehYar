@@ -68,15 +68,42 @@ public sealed class PanelViewModel : ViewModelBase
         _hideItem = new PanelItem("", new RelayCommand(_controller.HidePanelToStrip));
         _exitItem = new PanelItem("", new RelayCommand(_controller.Exit));
 
-        Items.Add(_settingsItem);
-        Items.Add(_pinItem);
-        Items.Add(_hideItem);
-        Items.Add(_exitItem);
-
         Refresh();
     }
 
     public ObservableCollection<PanelItem> Items { get; } = new();
+
+    private readonly System.Collections.Generic.Dictionary<string, PanelItem> _moduleItems = new();
+    private string _itemsKey = "";
+
+    /// <summary>Tools (in the saved order, only enabled ones) followed by the built-in buttons.</summary>
+    private void RebuildItems(AppSettings s)
+    {
+        var modules = _controller.Modules.GetOrderedEnabled(s.ModuleOrder, s.ModulesEnabled);
+        var key = string.Join(",", System.Linq.Enumerable.Select(modules, m => m.Id));
+
+        foreach (var module in modules)
+        {
+            if (!_moduleItems.TryGetValue(module.Id, out var item))
+            {
+                var captured = module;
+                item = new PanelItem(module.Glyph, new RelayCommand(() => _controller.OpenModule(captured)));
+                _moduleItems[module.Id] = item;
+            }
+
+            item.ToolTip = Loc.Get(module.TitleKey, s.Language);
+        }
+
+        if (key == _itemsKey && Items.Count > 0) return;
+        _itemsKey = key;
+
+        Items.Clear();
+        foreach (var module in modules) Items.Add(_moduleItems[module.Id]);
+        Items.Add(_settingsItem);
+        Items.Add(_pinItem);
+        Items.Add(_hideItem);
+        Items.Add(_exitItem);
+    }
 
     public Orientation Orientation { get; private set; } = Orientation.Vertical;
 
@@ -100,6 +127,8 @@ public sealed class PanelViewModel : ViewModelBase
         IconFontSize = s.IconSize * 0.78;
         ItemMargin = new Thickness(s.ItemSpacing / 2.0);
         PanelFont = new FontFamily(s.FontFamily);
+
+        RebuildItems(s);
 
         _settingsItem.ToolTip = Loc.Get("panel_settings", s.Language);
         _pinItem.Glyph = s.Pinned ? "" : ""; // unpin / pin

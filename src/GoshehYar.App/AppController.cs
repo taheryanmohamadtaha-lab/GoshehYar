@@ -16,6 +16,7 @@ using GoshehYar.Core.Music;
 using GoshehYar.Core.Notes;
 using GoshehYar.Core.Localization;
 using GoshehYar.Core.Modules;
+using GoshehYar.Core.Reminders;
 using GoshehYar.Core.Settings;
 
 namespace GoshehYar.App;
@@ -62,6 +63,8 @@ public sealed class AppController : IDisposable
         Backups = new BackupService(AppPaths.DataDirectory, AppPaths.RestoreSafetyDirectory, () => Notes);
         Recorder = new AudioRecorderService();
         Music = new MusicPlayerService(new PlaylistStore(AppPaths.PlaylistsPath), () => Settings.Current, change => Settings.Update(change));
+
+        ReminderSources.Add(new NotesReminderSource(this));
 
         RegisterModules();
     }
@@ -255,31 +258,43 @@ public sealed class AppController : IDisposable
         }
     }
 
-    private readonly Queue<Note> _reminderQueue = new();
+    private readonly Queue<(ReminderItem Item, IReminderSource? Source, bool Sound)> _reminderQueue = new();
     private ReminderWindow? _reminderWindow;
+
+    /// <summary>Everything that can have reminders. Tools add their source here when the app starts.</summary>
+    public List<IReminderSource> ReminderSources { get; } = new();
+
+    public void RaiseNoteReminderFired(string id) => NoteReminderFired?.Invoke(id);
 
     private void CheckReminders()
     {
-        if (Notes is null) return;
+        var now = DateTime.UtcNow;
+        var lang = Settings.Current.Language;
 
-        foreach (var note in Notes.GetDueReminders(DateTime.UtcNow))
+        foreach (var source in ReminderSources.ToList())
         {
             try
             {
-                // Only the "announced" flag is written, so unsaved edits in the notes window are never overwritten.
-                Notes.MarkReminderFired(note.Id);
-                NoteReminderFired?.Invoke(note.Id);
-
-                var title = string.IsNullOrWhiteSpace(note.Title) ? Loc.Get("note_untitled", Settings.Current.Language) : note.Title;
-                ShowBalloon(Loc.Get("reminder_prefix", Settings.Current.Language) + " " + title);
-                _reminderQueue.Enqueue(note);
+                foreach (var item in source.TakeDue(now))
+                {
+                    ShowBalloon(Loc.Get("reminder_prefix", lang) + " " + item.Title);
+                    _reminderQueue.Enqueue((item, source, true));
+                }
             }
             catch (Exception ex)
             {
-                Logger.Error("Announcing a reminder failed.", ex);
+                Logger.Error("Checking reminders failed for one source.", ex);
             }
         }
 
+        ShowNextReminder();
+    }
+
+    /// <summary>Shows a popup without a reminder source (finished timer, etc.).</summary>
+    public void ShowAlert(string header, string title, string body, bool sound = true)
+    {
+        var item = new ReminderItem("", title, body, null, CanSnooze: false, Header: header);
+        _reminderQueue.Enqueue((item, null, sound));
         ShowNextReminder();
     }
 
@@ -287,10 +302,10 @@ public sealed class AppController : IDisposable
     {
         if (_reminderWindow is not null || _reminderQueue.Count == 0) return;
 
-        var note = _reminderQueue.Dequeue();
+        var (item, source, sound) = _reminderQueue.Dequeue();
         try
         {
-            var window = new ReminderWindow(this, note);
+            var window = new ReminderWindow(this, item, source, sound);
             _reminderWindow = window;
             window.Closed += (_, _) =>
             {

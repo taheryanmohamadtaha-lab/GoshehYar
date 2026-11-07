@@ -103,6 +103,38 @@ public sealed class AppSettings
     public int BackupKeepCount { get; set; } = 7;
     public DateTime? LastBackupUtc { get; set; }
 
+    // ----- Clock & calendar (phase 3) -----
+    public bool Clock24Hour { get; set; } = true;
+    public bool ClockShowSeconds { get; set; } = true;
+    public bool ClockShowAnalog { get; set; } = true;
+    public CalendarKind CalendarKind { get; set; } = CalendarKind.Persian;
+
+    /// <summary>Windows time-zone ids of the extra clocks (e.g. "Eastern Standard Time").</summary>
+    public List<string> WorldClockZones { get; set; } = new() { "GMT Standard Time", "Eastern Standard Time", "Tokyo Standard Time" };
+
+    // ----- Weather (phase 3). The place is chosen by the user by name; no GPS. -----
+    public bool WeatherHasLocation { get; set; }
+    public string WeatherCity { get; set; } = "";
+    public string WeatherCountry { get; set; } = "";
+    public double WeatherLatitude { get; set; }
+    public double WeatherLongitude { get; set; }
+    public bool WeatherFahrenheit { get; set; }
+
+    // ----- Timer & Pomodoro (phase 3) -----
+    public int PomodoroWorkMinutes { get; set; } = 25;
+    public int PomodoroShortBreakMinutes { get; set; } = 5;
+    public int PomodoroLongBreakMinutes { get; set; } = 15;
+    public int PomodoroSessionsBeforeLongBreak { get; set; } = 4;
+    public bool PomodoroAutoStartNext { get; set; } = true;
+    public bool TimerSoundEnabled { get; set; } = true;
+
+    /// <summary>Last countdown length in seconds.</summary>
+    public int CountdownLastSeconds { get; set; } = 600;
+
+    /// <summary>Local date (yyyy-MM-dd) the Pomodoro counter belongs to; the counter restarts on a new day.</summary>
+    public string PomodoroCountDate { get; set; } = "";
+    public int PomodoroCountToday { get; set; }
+
     // ----- Modules (used from phase 2 on) -----
     public Dictionary<string, bool> ModulesEnabled { get; set; } = new();
     public List<string> ModuleOrder { get; set; } = new();
@@ -110,6 +142,7 @@ public sealed class AppSettings
     public AppSettings Clone()
     {
         var copy = (AppSettings)MemberwiseClone();
+        copy.WorldClockZones = new List<string>(WorldClockZones ?? new List<string>());
         copy.ModulesEnabled = new Dictionary<string, bool>(ModulesEnabled ?? new Dictionary<string, bool>());
         copy.ModuleOrder = new List<string>(ModuleOrder ?? new List<string>());
         return copy;
@@ -161,6 +194,21 @@ public sealed class AppSettings
         ScreenshotDelaySeconds = (int)Clamp(ScreenshotDelaySeconds, 0, 30);
         MusicVolume = Clamp(MusicVolume, 0, 1);
         BackupKeepCount = (int)Clamp(BackupKeepCount, 1, 50);
+
+        if (!Enum.IsDefined(CalendarKind)) CalendarKind = CalendarKind.Persian;
+        WorldClockZones ??= new List<string>();
+        WorldClockZones = WorldClockZones.Where(z => !string.IsNullOrWhiteSpace(z)).Distinct().Take(8).ToList();
+        WeatherCity ??= "";
+        WeatherCountry ??= "";
+        WeatherLatitude = Clamp(WeatherLatitude, -90, 90);
+        WeatherLongitude = Clamp(WeatherLongitude, -180, 180);
+        PomodoroWorkMinutes = (int)Clamp(PomodoroWorkMinutes, 1, 180);
+        PomodoroShortBreakMinutes = (int)Clamp(PomodoroShortBreakMinutes, 1, 60);
+        PomodoroLongBreakMinutes = (int)Clamp(PomodoroLongBreakMinutes, 1, 120);
+        PomodoroSessionsBeforeLongBreak = (int)Clamp(PomodoroSessionsBeforeLongBreak, 2, 12);
+        CountdownLastSeconds = (int)Clamp(CountdownLastSeconds, 1, 99 * 3600);
+        PomodoroCountDate ??= "";
+        PomodoroCountToday = (int)Clamp(PomodoroCountToday, 0, 999);
 
         ModulesEnabled ??= new Dictionary<string, bool>();
         ModuleOrder ??= new List<string>();

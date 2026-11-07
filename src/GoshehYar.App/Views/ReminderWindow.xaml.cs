@@ -1,26 +1,29 @@
 using System;
-using System.Linq;
 using System.Media;
 using System.Windows;
 using System.Windows.Controls;
+using GoshehYar.App.Services;
 using GoshehYar.Core.Localization;
-using GoshehYar.Core.Notes;
+using GoshehYar.Core.Reminders;
 using GoshehYar.Core.Settings;
 
 namespace GoshehYar.App.Views;
 
-/// <summary>Pops up on top of everything when a note's reminder time comes. Offers snooze, open and dismiss.</summary>
+/// <summary>
+/// Pops up on top of everything when a reminder (note, event, task) comes due or a timer ends.
+/// Snooze and "open" buttons appear only when the item supports them.
+/// </summary>
 public partial class ReminderWindow : Window
 {
     private static readonly int[] SnoozeMinutes = { 5, 10, 30, 60, 180 };
 
-    private readonly AppController _controller;
-    private readonly string _noteId;
+    private readonly ReminderItem _item;
+    private readonly IReminderSource? _source;
 
-    public ReminderWindow(AppController controller, Note note)
+    public ReminderWindow(AppController controller, ReminderItem item, IReminderSource? source, bool playSound = true)
     {
-        _controller = controller;
-        _noteId = note.Id;
+        _item = item;
+        _source = source;
 
         InitializeComponent();
 
@@ -29,58 +32,59 @@ public partial class ReminderWindow : Window
         string N(string text) => DigitFormatter.Format(text, s.Digits);
 
         FlowDirection = s.Language == AppLanguage.Persian ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
-        Title = T("reminder_title");
-        HeaderText.Text = T("reminder_title");
-        TitleText.Text = string.IsNullOrWhiteSpace(note.Title) ? T("note_untitled") : note.Title.Trim();
+        var header = item.Header ?? T("reminder_title");
+        Title = header;
+        HeaderText.Text = header;
+        TitleText.Text = string.IsNullOrWhiteSpace(item.Title) ? T("note_untitled") : item.Title.Trim();
 
-        string body;
-        if (note.IsChecklist)
-        {
-            var open = note.Items.Where(i => !i.Done).Select(i => "☐ " + i.Text).Take(6);
-            body = string.Join(Environment.NewLine, open);
-        }
-        else
-        {
-            body = note.Body.Trim();
-            if (body.Length > 240) body = body[..240] + "…";
-        }
+        BodyText.Text = item.Body ?? "";
+        BodyText.Visibility = string.IsNullOrWhiteSpace(item.Body) ? Visibility.Collapsed : Visibility.Visible;
 
-        BodyText.Text = body;
-        BodyText.Visibility = body.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
-
-        if (note.ReminderUtc is { } utc)
+        if (item.DueUtc is { } utc)
         {
             TimeText.Text = N(string.Format(T("reminder_at"), utc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")));
         }
-
-        SnoozeLabel.Text = T("reminder_snooze_label");
-        foreach (var minutes in SnoozeMinutes)
+        else
         {
-            var text = minutes >= 60
-                ? string.Format(T("reminder_snooze_hours"), minutes / 60)
-                : string.Format(T("reminder_snooze_minutes"), minutes);
-            var button = new Button { Content = N(text), Margin = new Thickness(0, 0, 6, 6), Padding = new Thickness(10, 5, 10, 5) };
-            var m = minutes;
-            button.Click += (_, _) =>
+            TimeText.Visibility = Visibility.Collapsed;
+        }
+
+        if (item.CanSnooze && source is not null)
+        {
+            SnoozeLabel.Text = T("reminder_snooze_label");
+            foreach (var minutes in SnoozeMinutes)
             {
-                _controller.SnoozeNote(_noteId, m);
-                Close();
-            };
-            SnoozePanel.Children.Add(button);
+                var text = minutes >= 60
+                    ? string.Format(T("reminder_snooze_hours"), minutes / 60)
+                    : string.Format(T("reminder_snooze_minutes"), minutes);
+                var button = new Button { Content = N(text), Margin = new Thickness(0, 0, 6, 6), Padding = new Thickness(10, 5, 10, 5) };
+                var m = minutes;
+                button.Click += (_, _) =>
+                {
+                    _source?.Snooze(_item.Id, m);
+                    Close();
+                };
+                SnoozePanel.Children.Add(button);
+            }
+        }
+        else
+        {
+            SnoozeLabel.Visibility = Visibility.Collapsed;
+            SnoozePanel.Visibility = Visibility.Collapsed;
         }
 
         OpenButton.Content = T("reminder_open");
+        OpenButton.Visibility = source is null ? Visibility.Collapsed : Visibility.Visible;
         DismissButton.Content = T("reminder_dismiss");
 
         // Bottom-right corner of the work area, so it is seen but does not cover what the user is typing.
-        var area = SystemParameters.WorkArea;
-        Left = area.Right - Width - 16;
-        Top = area.Bottom - 320;
-        SourceInitialized += (_, _) => PositionAfterLayout();
         Loaded += (_, _) =>
         {
             PositionAfterLayout();
-            try { SystemSounds.Exclamation.Play(); } catch (Exception) { }
+            if (playSound)
+            {
+                try { SystemSounds.Exclamation.Play(); } catch (Exception) { }
+            }
         };
     }
 
@@ -93,7 +97,7 @@ public partial class ReminderWindow : Window
 
     private void OnOpen(object sender, RoutedEventArgs e)
     {
-        _controller.OpenNote(_noteId);
+        _source?.Open(_item.Id);
         Close();
     }
 

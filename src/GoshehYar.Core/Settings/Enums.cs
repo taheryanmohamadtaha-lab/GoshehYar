@@ -54,3 +54,9 @@ public enum AudioFormat { Wav, Mp3 }
 public enum RepeatMode { None, One, All }
 
 public enum BackupFrequency { Daily, Weekly }
+
+public enum CalendarKind
+{
+    Persian,
+    Gregorian
+}

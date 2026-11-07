@@ -5,7 +5,7 @@ namespace GoshehYar.Core.Localization;
 /// <summary>Tiny built-in string table (Persian + English). Keys use underscores so they work in XAML indexers.</summary>
 public static class Loc
 {
-    private static readonly Dictionary<string, (string Fa, string En)> Table = new()
+    private static readonly Dictionary<string, (string Fa, string En)> BaseTable = new()
     {
         // application / tray
         ["app_name"] = ("گوشه‌یار", "GoshehYar"),
@@ -254,6 +254,30 @@ public static class Loc
         ["unit_minute"] = ("{0} دقیقه", "{0} min"),
         ["unit_and"] = (" و ", ", "),
     };
+
+    private static readonly List<string> Duplicates = new();
+
+    private static readonly Dictionary<string, (string Fa, string En)> Table = Merge();
+
+    /// <summary>Keys defined in more than one table (a bug; checked by a test).</summary>
+    public static IReadOnlyList<string> DuplicateKeys => Duplicates;
+
+    private static Dictionary<string, (string Fa, string En)> Merge()
+    {
+        var all = new Dictionary<string, (string Fa, string En)>(BaseTable);
+        foreach (var extra in new[]
+                 {
+                     LocClock.Table, LocWeather.Table, LocTasks.Table, LocTimer.Table, LocCalc.Table
+                 })
+        {
+            foreach (var pair in extra)
+            {
+                if (!all.TryAdd(pair.Key, pair.Value)) Duplicates.Add(pair.Key);
+            }
+        }
+
+        return all;
+    }
 
     /// <summary>All defined keys (used by tests to make sure every key has both languages).</summary>
     public static IEnumerable<string> Keys => Table.Keys;

@@ -178,7 +178,7 @@ public sealed class RecorderViewModel : LocalizedViewModel
         catch (Exception ex)
         {
             Logger.Error("Could not start recording.", ex);
-            Status = this["rec_error_start"];
+            Status = this["rec_error_start"] + " (" + ex.GetType().Name + ": " + ex.Message + ")";
         }
     }
 
@@ -203,7 +203,7 @@ public sealed class RecorderViewModel : LocalizedViewModel
         catch (Exception ex)
         {
             Logger.Error("Stopping the recording failed.", ex);
-            Status = this["rec_error_stop"];
+            Status = this["rec_error_stop"] + " (" + ex.Message + ")";
         }
 
         RefreshList();

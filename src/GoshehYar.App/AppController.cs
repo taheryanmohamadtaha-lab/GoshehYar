@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Diagnostics;
 using System.Windows;
 using System.Collections.Generic;
@@ -212,6 +213,13 @@ public sealed class AppController : IDisposable
             _windows.Remove(module.Id);
             Logger.Error($"Could not open tool '{module.Id}'.", ex);
             ShowBalloon(Loc.Get("err_unexpected", Settings.Current.Language));
+            MessageBox.Show(
+                Loc.Get("err_unexpected", Settings.Current.Language) + Environment.NewLine + Environment.NewLine +
+                ex.GetType().Name + ": " + ex.Message + Environment.NewLine + Environment.NewLine +
+                Path.Combine(AppPaths.LogsDirectory, "goshehyar.log"),
+                "GoshehYar",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
         }
     }
 

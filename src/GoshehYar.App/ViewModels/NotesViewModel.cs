@@ -221,6 +221,7 @@ public sealed class NotesViewModel : LocalizedViewModel
     private string _newItemText = "";
     private string _status = "";
     private bool _rebuilding;
+    private bool _refilterPending;
 
     public NotesViewModel(AppController controller) : base(controller)
     {
@@ -312,13 +313,29 @@ public sealed class NotesViewModel : LocalizedViewModel
     public string SearchText
     {
         get => _search;
-        set { _search = value ?? ""; OnPropertyChanged(); Refilter(_selected); }
+        set
+        {
+            var text = value ?? "";
+            if (_rebuilding || text == _search) return;
+            _search = text;
+            OnPropertyChanged();
+            Refilter(_selected);
+        }
     }
 
     public string FilterCategory
     {
         get => _filterCategory;
-        set { _filterCategory = value ?? ""; OnPropertyChanged(); Refilter(_selected); }
+        set
+        {
+            // The category box is emptied and refilled while the list is rebuilt; those writes must be ignored,
+            // otherwise rebuilding triggers another rebuild without end.
+            var category = value ?? "";
+            if (_rebuilding || category == _filterCategory) return;
+            _filterCategory = category;
+            OnPropertyChanged();
+            Refilter(_selected);
+        }
     }
 
     public string NewItemText
@@ -348,7 +365,16 @@ public sealed class NotesViewModel : LocalizedViewModel
 
     // ----------------------------------------------------------------- editing
 
-    private NoteItemVM Wrap(Note note) => new(note, OnNoteChanged);
+    private NoteItemVM Wrap(Note note)
+    {
+        var item = new NoteItemVM(note, OnNoteChanged);
+        item.PropertyChanged += (_, e) =>
+        {
+            // Pin and category change where a note appears in the list.
+            if (e.PropertyName is nameof(NoteItemVM.Pinned) or nameof(NoteItemVM.Category)) _refilterPending = true;
+        };
+        return item;
+    }
 
     private void OnNoteChanged(NoteItemVM item)
     {
@@ -434,7 +460,13 @@ public sealed class NotesViewModel : LocalizedViewModel
         }
 
         Status = failed ? this["notes_save_error"] : this["notes_saved"];
-        Refilter(_selected);
+
+        // Rebuilding the list on every autosave would steal the cursor while typing.
+        if (_refilterPending)
+        {
+            _refilterPending = false;
+            Refilter(_selected);
+        }
     }
 
     /// <summary>Writes pending edits right now (before a backup or when the window closes).</summary>

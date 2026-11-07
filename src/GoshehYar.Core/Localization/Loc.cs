@@ -252,7 +252,7 @@ public static class Loc
         ["unit_day"] = ("{0} روز", "{0} d"),
         ["unit_hour"] = ("{0} ساعت", "{0} h"),
         ["unit_minute"] = ("{0} دقیقه", "{0} min"),
-        ["unit_and"] = (" و ", " "),
+        ["unit_and"] = (" و ", ", "),
     };
 
     /// <summary>All defined keys (used by tests to make sure every key has both languages).</summary>

@@ -144,6 +144,38 @@ ON CONFLICT(id) DO UPDATE SET
     public IReadOnlyList<Note> GetDueReminders(DateTime nowUtc) =>
         GetAll().Where(n => n.ReminderUtc is { } t && !n.ReminderFired && t <= nowUtc).ToList();
 
+    /// <summary>
+    /// Marks only the reminder as announced. Other columns are left alone, so a newer edit that is
+    /// still waiting in the editor is never overwritten by an old copy of the note.
+    /// </summary>
+    public void MarkReminderFired(string id)
+    {
+        lock (_gate)
+        {
+            using var c = Open();
+            using var cmd = c.CreateCommand();
+            cmd.CommandText = "UPDATE notes SET reminder_fired=1 WHERE id=$id";
+            cmd.Parameters.AddWithValue("$id", id);
+            cmd.ExecuteNonQuery();
+        }
+    }
+
+    /// <summary>Sets (or clears, with null) the reminder time of one note and resets its "announced" flag.</summary>
+    public void SetReminder(string id, DateTime? reminderUtc)
+    {
+        lock (_gate)
+        {
+            using var c = Open();
+            using var cmd = c.CreateCommand();
+            cmd.CommandText = "UPDATE notes SET reminder_utc=$rem, reminder_fired=0 WHERE id=$id";
+            cmd.Parameters.AddWithValue("$id", id);
+            cmd.Parameters.AddWithValue("$rem", reminderUtc is null ? DBNull.Value : FormatDate(reminderUtc.Value));
+            cmd.ExecuteNonQuery();
+        }
+    }
+
+    public Note? GetById(string id) => GetAll().FirstOrDefault(n => n.Id == id);
+
     /// <summary>Writes a consistent copy of the database to <paramref name="destinationPath"/> (must not exist).</summary>
     public void SnapshotTo(string destinationPath)
     {

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.IO;
 using System.Diagnostics;
 using System.Windows;
@@ -77,6 +78,9 @@ public sealed class AppController : IDisposable
     /// <summary>Raised when a note reminder fires (argument: note id) so an open notes window can update.</summary>
     public event Action<string>? NoteReminderFired;
 
+    /// <summary>A reminder time was changed outside the notes window (snooze). Arguments: note id, new UTC time.</summary>
+    public event Action<string, DateTime?>? NoteReminderChanged;
+
     /// <summary>Raised before the notes database is replaced or backed up, so open editors save their pending text.</summary>
     public event Action? NotesFlushRequested;
 
@@ -144,9 +148,12 @@ public sealed class AppController : IDisposable
         Recorder.StateChanged += (_, _) => _tray?.SetRecording(Recorder.State != RecorderState.Idle);
 
         // Reminders and automatic backups: one slow timer, nothing runs while there is nothing to do.
-        _maintenanceTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+        _maintenanceTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
         _maintenanceTimer.Tick += (_, _) => RunMaintenance();
         _maintenanceTimer.Start();
+
+        // Reminders that came due while the program was closed are shown right away.
+        _application.Dispatcher.BeginInvoke(new Action(RunMaintenance), DispatcherPriority.ApplicationIdle);
 
         // A second launch of the program brings the panel back.
         _singleInstance.ListenForSignal(() =>
@@ -248,18 +255,84 @@ public sealed class AppController : IDisposable
         }
     }
 
+    private readonly Queue<Note> _reminderQueue = new();
+    private ReminderWindow? _reminderWindow;
+
     private void CheckReminders()
     {
         if (Notes is null) return;
 
         foreach (var note in Notes.GetDueReminders(DateTime.UtcNow))
         {
-            note.ReminderFired = true;
-            Notes.Save(note);
-            NoteReminderFired?.Invoke(note.Id);
+            try
+            {
+                // Only the "announced" flag is written, so unsaved edits in the notes window are never overwritten.
+                Notes.MarkReminderFired(note.Id);
+                NoteReminderFired?.Invoke(note.Id);
 
-            var title = string.IsNullOrWhiteSpace(note.Title) ? Loc.Get("note_untitled", Settings.Current.Language) : note.Title;
-            ShowBalloon(Loc.Get("reminder_prefix", Settings.Current.Language) + " " + title);
+                var title = string.IsNullOrWhiteSpace(note.Title) ? Loc.Get("note_untitled", Settings.Current.Language) : note.Title;
+                ShowBalloon(Loc.Get("reminder_prefix", Settings.Current.Language) + " " + title);
+                _reminderQueue.Enqueue(note);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Announcing a reminder failed.", ex);
+            }
+        }
+
+        ShowNextReminder();
+    }
+
+    private void ShowNextReminder()
+    {
+        if (_reminderWindow is not null || _reminderQueue.Count == 0) return;
+
+        var note = _reminderQueue.Dequeue();
+        try
+        {
+            var window = new ReminderWindow(this, note);
+            _reminderWindow = window;
+            window.Closed += (_, _) =>
+            {
+                _reminderWindow = null;
+                ShowNextReminder();
+            };
+            window.Show();
+        }
+        catch (Exception ex)
+        {
+            _reminderWindow = null;
+            Logger.Error("Could not show the reminder window.", ex);
+        }
+    }
+
+    /// <summary>Postpones a note's reminder by the given number of minutes.</summary>
+    public void SnoozeNote(string id, int minutes)
+    {
+        if (Notes is null) return;
+
+        try
+        {
+            var when = DateTime.UtcNow.AddMinutes(minutes);
+            Notes.SetReminder(id, when);
+            NoteReminderChanged?.Invoke(id, when);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Snoozing a reminder failed.", ex);
+        }
+    }
+
+    /// <summary>Opens the notes window and shows the given note.</summary>
+    public void OpenNote(string id)
+    {
+        var module = Modules.All.FirstOrDefault(m => m.Id == "notes");
+        if (module is null) return;
+
+        OpenModule(module);
+        if (_windows.TryGetValue("notes", out var window) && window.DataContext is NotesViewModel vm)
+        {
+            vm.SelectById(id);
         }
     }
 

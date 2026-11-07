@@ -41,7 +41,7 @@
                 </StackPanel>
                 <TextBlock Text="{Binding ElapsedText}" FontSize="40" FontWeight="Light" HorizontalAlignment="Center"
                            FlowDirection="LeftToRight" Margin="0,6,0,6" />
-                <ProgressBar Height="10" Minimum="0" Maximum="100" Value="{Binding LevelPercent}"
+                <ProgressBar Height="10" Minimum="0" Maximum="100" Value="{Binding LevelPercent, Mode=OneWay}"
                              Foreground="{DynamicResource Brush.Accent}" Background="{DynamicResource Brush.Background}"
                              BorderThickness="0" FlowDirection="LeftToRight" />
             </StackPanel>

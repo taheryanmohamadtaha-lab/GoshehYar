@@ -235,6 +235,24 @@ public static class Loc
         ["backup_confirm_restore"] = ("اطلاعات فعلی با محتوای «{0}» جایگزین می‌شود. قبل از آن یک نسخه ایمن از اطلاعات فعلی نگه‌داری می‌شود و برنامه دوباره اجرا می‌شود. ادامه می‌دهید؟", "Your current data will be replaced with the content of \"{0}\". A safety copy of the current data is kept first, and the app restarts. Continue?"),
         ["backup_restored"] = ("بازیابی انجام شد. نسخه ایمن اطلاعات قبلی در این پوشه است:\n{0}\n\nبرنامه دوباره اجرا می‌شود.", "Restore complete. The previous data was kept here:\n{0}\n\nThe app will restart."),
         ["backup_restore_failed"] = ("بازیابی انجام نشد؛ اطلاعات قبلی سالم باقی ماند.", "Restore failed; your previous data is untouched."),
+        // reminders
+        ["reminder_title"] = ("یادآوری", "Reminder"),
+        ["reminder_at"] = ("زمان یادآوری: {0}", "Reminder time: {0}"),
+        ["reminder_snooze_label"] = ("به تعویق انداختن:", "Snooze:"),
+        ["reminder_snooze_minutes"] = ("{0} دقیقه دیگر", "In {0} min"),
+        ["reminder_snooze_hours"] = ("{0} ساعت دیگر", "In {0} h"),
+        ["reminder_open"] = ("باز کردن یادداشت", "Open note"),
+        ["reminder_dismiss"] = ("بستن", "Dismiss"),
+        ["notes_no_reminder"] = ("یادآوری تنظیم نشده است.", "No reminder set."),
+        ["notes_reminder_at"] = ("یادآوری: {0} ({1})", "Reminder: {0} ({1})"),
+        ["rel_in"] = ("{0} دیگر", "in {0}"),
+        ["rel_ago"] = ("{0} پیش", "{0} ago"),
+        ["rel_now"] = ("همین حالا", "right now"),
+        ["rel_announced"] = ("اعلام شد", "announced"),
+        ["unit_day"] = ("{0} روز", "{0} d"),
+        ["unit_hour"] = ("{0} ساعت", "{0} h"),
+        ["unit_minute"] = ("{0} دقیقه", "{0} min"),
+        ["unit_and"] = (" و ", " "),
     };
 
     /// <summary>All defined keys (used by tests to make sure every key has both languages).</summary>

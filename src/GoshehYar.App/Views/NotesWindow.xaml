@@ -66,6 +66,19 @@
                                     </Style>
                                 </TextBlock.Style>
                             </TextBlock>
+                            <TextBlock DockPanel.Dock="Right" FontFamily="Segoe MDL2 Assets" Text="&#xEA8F;" Margin="6,0,0,0"
+                                       Foreground="{DynamicResource Brush.Accent}" VerticalAlignment="Top">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasReminder}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                             <StackPanel>
                                 <TextBlock Text="{Binding ListTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="{Binding Preview}" FontSize="12" TextTrimming="CharacterEllipsis"
@@ -126,14 +139,22 @@
                               ItemsSource="{Binding CategoryChoices}" ToolTip="{Binding [notes_category]}" />
                 </DockPanel>
 
-                <!-- reminder -->
-                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,8">
-                    <TextBlock VerticalAlignment="Center" Text="{Binding [notes_reminder]}" Margin="0,0,8,0" />
-                    <DatePicker SelectedDate="{Binding Selected.ReminderDate}" Width="140" />
-                    <TextBox Width="70" Margin="8,0,0,0" Text="{Binding Selected.ReminderTime, UpdateSourceTrigger=LostFocus}"
-                             IsEnabled="{Binding Selected.HasReminder}" ToolTip="HH:mm" FlowDirection="LeftToRight" />
-                    <Button Margin="8,0,0,0" Padding="9,5" FontFamily="Segoe MDL2 Assets" Content="&#xE711;"
-                            ToolTip="{Binding [notes_clear_reminder]}" Command="{Binding ClearReminderCommand}" />
+                <!-- reminder: exact date and time -->
+                <StackPanel Grid.Row="2" Margin="0,8,0,8">
+                    <WrapPanel>
+                        <CheckBox VerticalAlignment="Center" Margin="0,0,10,4" Content="{Binding [notes_reminder]}"
+                                  IsChecked="{Binding Selected.HasReminder}" />
+                        <DatePicker SelectedDate="{Binding Selected.ReminderDate}" Width="130" Margin="0,0,8,4"
+                                    IsEnabled="{Binding Selected.HasReminder}" FlowDirection="LeftToRight" />
+                        <ComboBox Width="60" Margin="0,0,4,4" ItemsSource="{Binding Hours}" ItemStringFormat="00"
+                                  SelectedItem="{Binding Selected.ReminderHour}" IsEnabled="{Binding Selected.HasReminder}"
+                                  FlowDirection="LeftToRight" />
+                        <TextBlock Text=":" VerticalAlignment="Center" Margin="0,0,4,4" />
+                        <ComboBox Width="60" Margin="0,0,0,4" ItemsSource="{Binding Minutes}" ItemStringFormat="00"
+                                  SelectedItem="{Binding Selected.ReminderMinute}" IsEnabled="{Binding Selected.HasReminder}"
+                                  FlowDirection="LeftToRight" />
+                    </WrapPanel>
+                    <TextBlock Text="{Binding ReminderSummary}" Style="{StaticResource Style.Muted}" FontSize="12" />
                 </StackPanel>
 
                 <!-- text note -->

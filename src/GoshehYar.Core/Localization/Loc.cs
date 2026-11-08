@@ -267,7 +267,7 @@ public static class Loc
         var all = new Dictionary<string, (string Fa, string En)>(BaseTable);
         foreach (var extra in new[]
                  {
-                     LocClock.Table, LocWeather.Table, LocTasks.Table, LocTimer.Table, LocCalc.Table
+                     LocClock.Table, LocCalendar.Table, LocWeather.Table, LocTasks.Table, LocTimer.Table, LocCalc.Table
                  })
         {
             foreach (var pair in extra)

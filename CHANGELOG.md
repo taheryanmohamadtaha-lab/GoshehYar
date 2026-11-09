@@ -1,5 +1,8 @@
 # Changelog
 
+## [Unreleased] - Phase 3 (daily widgets)
+- Clock (world clocks), calendar (Jalali/Gregorian, events with exact reminders), weather (Open-Meteo, cached), To-Do with due date/time and exact reminders, timer/stopwatch/Pomodoro, calculator with percent, unit converter, password generator and date tools
+
 ## [Unreleased] - Phase 2 (tools)
 - Screenshot, audio recorder, music player, notes (SQLite) with reminders, backup/restore system
 

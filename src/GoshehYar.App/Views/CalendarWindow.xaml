@@ -1,0 +1,234 @@
+<Window x:Class="GoshehYar.App.Views.CalendarWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding [mod_calendar]}"
+        Width="880" Height="640" MinWidth="780" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="{Binding FlowDirection}"
+        Background="{DynamicResource Brush.Background}"
+        Foreground="{DynamicResource Brush.Foreground}">
+    <Window.Resources>
+        <Style x:Key="Style.NavButton" TargetType="Button" BasedOn="{x:Null}">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Foreground}" />
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="Style.DayButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Foreground}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Margin="2" CornerRadius="8" BorderThickness="2"
+                                BorderBrush="Transparent" Background="Transparent">
+                            <Grid>
+                                <TextBlock x:Name="Num" Text="{Binding Text}" FontSize="16"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{TemplateBinding Foreground}" />
+                                <Ellipse x:Name="Dot" Width="6" Height="6" Margin="0,0,0,5"
+                                         HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                         Fill="{DynamicResource Brush.Accent}" Visibility="Collapsed" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+                            </Trigger>
+                            <DataTrigger Binding="{Binding HasEvents}" Value="True">
+                                <Setter TargetName="Dot" Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                                <Setter TargetName="Num" Property="FontWeight" Value="Bold" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Accent}" />
+                                <Setter TargetName="Dot" Property="Fill" Value="{DynamicResource Brush.Foreground}" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsFriday}" Value="True">
+                    <Setter Property="Foreground" Value="#E5534B" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding InMonth}" Value="False">
+                    <Setter Property="Opacity" Value="0.4" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="14">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="440" />
+            <ColumnDefinition Width="14" />
+            <ColumnDefinition Width="340" />
+        </Grid.ColumnDefinitions>
+
+        <!-- left: month -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Style="{StaticResource Style.NavButton}" Margin="0,0,4,0"
+                        Content="{Binding PrevYearGlyph}" ToolTip="{Binding [cal_prev_year]}" Command="{Binding PrevYearCommand}" />
+                <Button Grid.Column="1" Style="{StaticResource Style.NavButton}"
+                        Content="{Binding PrevMonthGlyph}" ToolTip="{Binding [cal_prev_month]}" Command="{Binding PrevMonthCommand}" />
+                <TextBlock Grid.Column="2" Text="{Binding MonthTitle}" FontSize="20" FontWeight="SemiBold"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Button Grid.Column="3" Style="{StaticResource Style.NavButton}"
+                        Content="{Binding NextMonthGlyph}" ToolTip="{Binding [cal_next_month]}" Command="{Binding NextMonthCommand}" />
+                <Button Grid.Column="4" Style="{StaticResource Style.NavButton}" Margin="4,0,0,0"
+                        Content="{Binding NextYearGlyph}" ToolTip="{Binding [cal_next_year]}" Command="{Binding NextYearCommand}" />
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="0,10,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="{Binding [cal_today]}" Command="{Binding TodayCommand}" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding [cal_calendar_type]}" Style="{StaticResource Style.Muted}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox Width="130" ItemsSource="{Binding KindOptions}" DisplayMemberPath="Label"
+                              SelectedValuePath="Value" SelectedValue="{Binding KindValue}" />
+                </StackPanel>
+            </Grid>
+
+            <ItemsControl Grid.Row="2" Margin="0,12,0,2" ItemsSource="{Binding WeekdayHeaders}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="1" Columns="7" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource Brush.Muted}" FontWeight="SemiBold" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <ItemsControl Grid.Row="3" ItemsSource="{Binding Cells}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="6" Columns="7" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Style="{StaticResource Style.DayButton}"
+                                Command="{Binding DataContext.SelectDayCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+
+        <!-- right: day and editor -->
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="{Binding SelectedTitle}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding SelectedSubTitle}" Style="{StaticResource Style.Muted}" Margin="0,2,0,8" />
+
+                <ListBox ItemsSource="{Binding Events}" SelectedItem="{Binding SelectedEvent}" MinHeight="60" MaxHeight="170"
+                         HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,3">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding TimeText}" Foreground="{DynamicResource Brush.Accent}" Margin="8,0,0,0" />
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                </DockPanel>
+                                <TextBlock Text="{Binding Note}" Style="{StaticResource Style.Muted}" TextTrimming="CharacterEllipsis" MaxHeight="18" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <TextBlock Text="{Binding [cal_no_events]}" Style="{StaticResource Style.Muted}" Margin="0,6,0,0"
+                           Visibility="{Binding NoEventsVisibility}" />
+
+                <Button Margin="0,8,0,0" Content="{Binding [cal_new_event]}" Command="{Binding NewEventCommand}" />
+
+                <Border Height="1" Margin="0,12" Background="{DynamicResource Brush.Border}" />
+
+                <TextBlock Text="{Binding EditorTitle}" FontWeight="SemiBold" Margin="0,0,0,6" />
+
+                <TextBlock Text="{Binding [cal_field_title]}" Style="{StaticResource Style.Muted}" />
+                <TextBox Margin="0,2,0,8" Text="{Binding EditTitle, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Text="{Binding [cal_field_note]}" Style="{StaticResource Style.Muted}" />
+                <TextBox Margin="0,2,0,8" Height="56" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                         Text="{Binding EditNote, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Text="{Binding [cal_field_date]}" Style="{StaticResource Style.Muted}" />
+                <TextBox Margin="0,2,0,2" Text="{Binding EditDateText, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="{Binding DateHint}" Style="{StaticResource Style.Muted}" FontSize="11" Margin="0,0,0,8" />
+
+                <CheckBox Content="{Binding [cal_all_day]}" IsChecked="{Binding EditAllDay}" Margin="0,0,0,6" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8" IsEnabled="{Binding TimeEnabled}">
+                    <TextBlock Text="{Binding [cal_time]}" Style="{StaticResource Style.Muted}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox Width="64" ItemsSource="{Binding HourOptions}" DisplayMemberPath="Label"
+                              SelectedValuePath="Value" SelectedValue="{Binding EditHour}" />
+                    <TextBlock Text=":" VerticalAlignment="Center" Margin="6,0" />
+                    <ComboBox Width="64" ItemsSource="{Binding MinuteOptions}" DisplayMemberPath="Label"
+                              SelectedValuePath="Value" SelectedValue="{Binding EditMinute}" />
+                </StackPanel>
+
+                <TextBlock Text="{Binding [cal_reminder]}" Style="{StaticResource Style.Muted}" />
+                <ComboBox Margin="0,2,0,8" ItemsSource="{Binding ReminderOptions}" DisplayMemberPath="Label"
+                          SelectedValuePath="Value" SelectedValue="{Binding EditReminder}" />
+
+                <TextBlock Text="{Binding [cal_repeat]}" Style="{StaticResource Style.Muted}" />
+                <ComboBox Margin="0,2,0,10" ItemsSource="{Binding RepeatOptions}" DisplayMemberPath="Label"
+                          SelectedValuePath="Value" SelectedValue="{Binding EditRepeat}" />
+
+                <UniformGrid Rows="1">
+                    <Button Margin="0,0,4,0" Content="{Binding [cal_save]}" Command="{Binding SaveCommand}" />
+                    <Button Margin="4,0,0,0" Content="{Binding [cal_delete]}" Command="{Binding DeleteCommand}"
+                            Visibility="{Binding DeleteVisibility}" />
+                </UniformGrid>
+                <TextBlock Text="{Binding Status}" Style="{StaticResource Style.Muted}" Margin="0,8,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

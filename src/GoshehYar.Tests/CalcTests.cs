@@ -74,7 +74,7 @@ public class CalcTests
     }
 
     [Fact]
-    public void PercentTools()
+    public void PercentToolsWork()
     {
         Assert.Equal(20m, PercentTools.PercentOf(10, 200));
         Assert.Equal(25m, PercentTools.WhatPercent(50, 200));

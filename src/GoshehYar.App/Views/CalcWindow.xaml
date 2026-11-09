@@ -113,7 +113,7 @@
                     <ComboBox ItemsSource="{Binding Units}" DisplayMemberPath="Label" SelectedValuePath="Id" SelectedValue="{Binding ToUnit}" />
                     <TextBlock Text="{Binding UnitResult, Mode=OneWay}" FontSize="26" FontWeight="SemiBold" Margin="0,14,0,0" FlowDirection="LeftToRight" />
                     <Button Content="{Binding [calc_unit_copy]}" Command="{Binding CopyUnitResultCommand}" HorizontalAlignment="Left" Margin="0,6,0,0" />
-                    <TextBlock Text="{Binding [calc_data_note]}" Style="{StaticResource Style.Muted}" TextWrapping="Wrap" Margin="0,8,0,0">
+                    <TextBlock Text="{Binding [calc_data_note]}" TextWrapping="Wrap" Margin="0,8,0,0">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock" BasedOn="{StaticResource Style.Muted}">
                                 <Setter Property="Visibility" Value="Collapsed" />

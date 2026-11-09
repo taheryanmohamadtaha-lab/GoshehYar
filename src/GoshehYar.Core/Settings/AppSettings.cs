@@ -135,6 +135,20 @@ public sealed class AppSettings
     public string PomodoroCountDate { get; set; } = "";
     public int PomodoroCountToday { get; set; }
 
+    // ----- Advanced appearance (phase 4) -----
+    /// <summary>Corner radius of the panel in pixels (0 = square).</summary>
+    public double PanelCornerRadius { get; set; } = 14;
+
+    /// <summary>Length of the show/hide animation in milliseconds (0 = no animation).</summary>
+    public int AnimationMs { get; set; } = 160;
+
+    // ----- Per-tool hotkeys (phase 4): module id -> gesture text -----
+    public Dictionary<string, string> ModuleHotkeys { get; set; } = new();
+
+    // ----- Clipboard history (phase 4). Off by default: a clipboard can hold passwords. -----
+    public bool ClipboardEnabled { get; set; }
+    public int ClipboardMaxItems { get; set; } = 100;
+
     // ----- Modules (used from phase 2 on) -----
     public Dictionary<string, bool> ModulesEnabled { get; set; } = new();
     public List<string> ModuleOrder { get; set; } = new();
@@ -145,6 +159,7 @@ public sealed class AppSettings
         copy.WorldClockZones = new List<string>(WorldClockZones ?? new List<string>());
         copy.ModulesEnabled = new Dictionary<string, bool>(ModulesEnabled ?? new Dictionary<string, bool>());
         copy.ModuleOrder = new List<string>(ModuleOrder ?? new List<string>());
+        copy.ModuleHotkeys = new Dictionary<string, string>(ModuleHotkeys ?? new Dictionary<string, string>());
         return copy;
     }
 
@@ -212,6 +227,22 @@ public sealed class AppSettings
 
         ModulesEnabled ??= new Dictionary<string, bool>();
         ModuleOrder ??= new List<string>();
+
+        PanelCornerRadius = Clamp(PanelCornerRadius, 0, 28);
+        AnimationMs = (int)Clamp(AnimationMs, 0, 500);
+        ClipboardMaxItems = (int)Clamp(ClipboardMaxItems, 10, 500);
+        ModuleHotkeys ??= new Dictionary<string, string>();
+        var cleaned = new Dictionary<string, string>();
+        foreach (var pair in ModuleHotkeys)
+        {
+            // Keep only valid gestures, written in their canonical form.
+            if (!string.IsNullOrWhiteSpace(pair.Key) && HotkeyGesture.TryParse(pair.Value, out var g) && g.HasModifier)
+            {
+                cleaned[pair.Key] = g.ToString();
+            }
+        }
+
+        ModuleHotkeys = cleaned;
     }
 
     private static double Clamp(double value, double min, double max)

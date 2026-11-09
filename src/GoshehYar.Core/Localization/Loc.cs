@@ -36,6 +36,9 @@ public static class Loc
         ["lbl_accent"] = ("رنگ اصلی", "Accent color"),
         ["lbl_font"] = ("فونت", "Font"),
         ["lbl_opacity"] = ("شفافیت پنل (٪)", "Panel opacity (%)"),
+        ["lbl_corner_radius"] = ("گردی گوشه‌های پنل", "Panel corner radius"),
+        ["lbl_anim_speed"] = ("مدت انیمیشن نمایش/مخفی‌شدن", "Show/hide animation length"),
+        ["lbl_anim_off"] = ("بدون انیمیشن", "No animation"),
         ["lbl_icon_size"] = ("اندازه آیکون‌ها", "Icon size"),
         ["lbl_density"] = ("حالت نمایش", "Density"),
         ["lbl_spacing"] = ("فاصله بین ابزارها", "Spacing between tools"),
@@ -267,7 +270,7 @@ public static class Loc
         var all = new Dictionary<string, (string Fa, string En)>(BaseTable);
         foreach (var extra in new[]
                  {
-                     LocClock.Table, LocCalendar.Table, LocWeather.Table, LocTasks.Table, LocTimer.Table, LocCalc.Table
+                     LocClock.Table, LocCalendar.Table, LocWeather.Table, LocTasks.Table, LocTimer.Table, LocCalc.Table, LocMonitor.Table, LocClipboard.Table
                  })
         {
             foreach (var pair in extra)

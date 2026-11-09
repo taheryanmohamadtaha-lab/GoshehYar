@@ -1,0 +1,74 @@
+<Window x:Class="GoshehYar.App.Views.ClipboardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding [mod_clipboard]}"
+        Width="560" Height="620" MinWidth="440" MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="{Binding FlowDirection}"
+        Background="{DynamicResource Brush.Background}"
+        Foreground="{DynamicResource Brush.Foreground}">
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <CheckBox Content="{Binding [clip_enable]}" IsChecked="{Binding Enabled}" />
+
+        <TextBox Grid.Row="1" Margin="0,10,0,0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding [clip_search]}" />
+
+        <Grid Grid.Row="2" Margin="0,10,0,0">
+            <ListBox ItemsSource="{Binding Rows}" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <DockPanel Margin="0,4">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="{Binding DataContext.CopyLabel, RelativeSource={RelativeSource AncestorType=ListBox}}" Margin="2"
+                                        Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
+                                <Button Content="📌" Margin="2" ToolTip="{Binding DataContext.PinLabel, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                        Command="{Binding DataContext.PinCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Opacity" Value="0.45" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Pinned}" Value="True">
+                                                    <Setter Property="Opacity" Value="1" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Content="✕" Margin="2" ToolTip="{Binding DataContext.DeleteLabel, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,8,0">
+                                <TextBlock Text="{Binding Preview}" TextTrimming="CharacterEllipsis" MaxHeight="40" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Meta}" Style="{StaticResource Style.Muted}" FontSize="11" />
+                            </StackPanel>
+                        </DockPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <TextBlock Text="{Binding [clip_empty]}" Style="{StaticResource Style.Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                       Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
+
+            <StackPanel VerticalAlignment="Center" Margin="20" Visibility="{Binding IsOff, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{Binding [clip_off_title]}" FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding [clip_off_text]}" Style="{StaticResource Style.Muted}" TextWrapping="Wrap" Margin="0,8,0,0" />
+            </StackPanel>
+        </Grid>
+
+        <DockPanel Grid.Row="3" Margin="0,10,0,0">
+            <Button DockPanel.Dock="Right" Content="{Binding [clip_clear_all]}" Command="{Binding ClearAllCommand}" Margin="6,0,0,0" />
+            <Button DockPanel.Dock="Right" Content="{Binding [clip_clear]}" Command="{Binding ClearCommand}" />
+            <StackPanel>
+                <TextBlock Text="{Binding CountText, Mode=OneWay}" Style="{StaticResource Style.Muted}" />
+                <TextBlock Text="{Binding Status, Mode=OneWay}" Style="{StaticResource Style.Muted}" />
+                <TextBlock Text="{Binding [clip_not_backed_up]}" Style="{StaticResource Style.Muted}" FontSize="11" />
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>

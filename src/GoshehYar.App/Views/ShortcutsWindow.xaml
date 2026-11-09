@@ -1,0 +1,37 @@
+<Window x:Class="GoshehYar.App.Views.ShortcutsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding [mod_shortcuts]}"
+        Width="520" Height="640" MinWidth="420" MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="{Binding FlowDirection}"
+        Background="{DynamicResource Brush.Background}"
+        Foreground="{DynamicResource Brush.Foreground}">
+    <DockPanel Margin="14">
+        <TextBlock DockPanel.Dock="Top" Text="{Binding [sc_hint]}" Style="{StaticResource Style.Muted}" TextWrapping="Wrap" Margin="0,0,0,10" />
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="170" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+                            <TextBox Grid.Column="1" Text="{Binding Display, Mode=OneWay}" IsReadOnly="True" IsReadOnlyCaretVisible="False"
+                                     FlowDirection="LeftToRight" HorizontalContentAlignment="Center" PreviewKeyDown="ShortcutBox_PreviewKeyDown" />
+                            <Button Grid.Column="2" Content="{Binding DataContext.ClearLabel, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Margin="6,0,0,0"
+                                    Command="{Binding DataContext.ClearCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    Visibility="{Binding HasGesture, Converter={StaticResource BoolToVisibility}}" />
+                            <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding Message, Mode=OneWay}" Style="{StaticResource Style.Muted}" FontSize="11" TextWrapping="Wrap" />
+                            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

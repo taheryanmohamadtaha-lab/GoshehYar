@@ -244,6 +244,18 @@ public sealed class SettingsViewModel : ViewModelBase, IDisposable
         set => Apply(s => s.PanelOpacity = value / 100.0, nameof(OpacityPercent), nameof(OpacityText));
     }
 
+    public double CornerRadiusValue
+    {
+        get => S.PanelCornerRadius;
+        set => Apply(s => s.PanelCornerRadius = value, nameof(CornerRadiusValue), nameof(CornerRadiusText));
+    }
+
+    public double AnimationMsValue
+    {
+        get => S.AnimationMs;
+        set => Apply(s => s.AnimationMs = (int)Math.Round(value / 10) * 10, nameof(AnimationMsValue), nameof(AnimationText));
+    }
+
     public double IconSize
     {
         get => S.IconSize;
@@ -342,6 +354,8 @@ public sealed class SettingsViewModel : ViewModelBase, IDisposable
 
     public string OpacityText => Num(OpacityPercent);
     public string IconSizeText => Num(S.IconSize);
+    public string CornerRadiusText => Num(S.PanelCornerRadius);
+    public string AnimationText => S.AnimationMs <= 0 ? this["lbl_anim_off"] : Num(S.AnimationMs) + " ms";
     public string ItemSpacingText => Num(S.ItemSpacing);
     public string ThicknessText => Num(S.PanelThickness);
     public string LengthText => Num(S.PanelLengthPercent);

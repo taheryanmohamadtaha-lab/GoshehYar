@@ -12,6 +12,7 @@ internal static class NativeMethods
     public const uint SWP_NOACTIVATE = 0x0010;
 
     public const int WM_HOTKEY = 0x0312;
+    public const int WM_CLIPBOARDUPDATE = 0x031D;
     public const uint MOD_NOREPEAT = 0x4000;
     public const int ERROR_HOTKEY_ALREADY_REGISTERED = 1409;
 
@@ -19,6 +20,14 @@ internal static class NativeMethods
 
     /// <summary>Parent handle that creates a message-only window.</summary>
     public static readonly IntPtr HWND_MESSAGE = new IntPtr(-3);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool AddClipboardFormatListener(IntPtr hwnd);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool RemoveClipboardFormatListener(IntPtr hwnd);
 
     [StructLayout(LayoutKind.Sequential)]
     public struct POINT

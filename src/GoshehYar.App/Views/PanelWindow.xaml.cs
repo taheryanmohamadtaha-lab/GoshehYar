@@ -180,6 +180,7 @@ public partial class PanelWindow : Window
     {
         var s = Settings;
         Opacity = s.PanelOpacity;
+        Card.CornerRadius = new CornerRadius(s.PanelCornerRadius);
         Topmost = s.AlwaysOnTop;
         _viewModel.Refresh();
         ApplyLayout();
@@ -251,7 +252,7 @@ public partial class PanelWindow : Window
 
     private void AnimateTo(double target)
     {
-        if (!SystemParameters.ClientAreaAnimation || !IsVisible)
+        if (!SystemParameters.ClientAreaAnimation || !IsVisible || Settings.AnimationMs <= 0)
         {
             SetRevealImmediately(target);
             return;
@@ -260,7 +261,7 @@ public partial class PanelWindow : Window
         var animation = new DoubleAnimation
         {
             To = target,
-            Duration = TimeSpan.FromMilliseconds(160),
+            Duration = TimeSpan.FromMilliseconds(Settings.AnimationMs),
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         };
         BeginAnimation(RevealProperty, animation);

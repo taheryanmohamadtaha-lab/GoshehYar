@@ -85,6 +85,8 @@ public sealed class AppController : IDisposable
         Music = new MusicPlayerService(new PlaylistStore(AppPaths.PlaylistsPath), () => Settings.Current, change => Settings.Update(change));
 
         Timers = new TimerService(this);
+        ClipboardHistory = new ClipboardService(this);
+        ClipboardHistory.Sync();
 
         ReminderSources.Add(new NotesReminderSource(this));
         ReminderSources.Add(new CalendarReminderSource(this));
@@ -104,6 +106,9 @@ public sealed class AppController : IDisposable
 
     /// <summary>Countdown, stopwatch and Pomodoro; they keep running with their window closed.</summary>
     public TimerService Timers { get; }
+
+    /// <summary>Clipboard text history (records only while the user turned it on).</summary>
+    public ClipboardService ClipboardHistory { get; }
 
     public BackupService Backups { get; }
 
@@ -159,6 +164,9 @@ public sealed class AppController : IDisposable
         }));
         Modules.Register(new ModuleDefinition("timer", "mod_timer", "\uE916", 100, c => new Views.TimerWindow(new ViewModels.TimerViewModel(c))));
         Modules.Register(new ModuleDefinition("calc", "mod_calc", "\uE8EF", 110, c => new Views.CalcWindow(new ViewModels.CalcViewModel(c))));
+        Modules.Register(new ModuleDefinition("clipboard", "mod_clipboard", "\uE77F", 120, c => new Views.ClipboardWindow(new ViewModels.ClipboardViewModel(c))));
+        Modules.Register(new ModuleDefinition("monitor", "mod_monitor", "\uE9D9", 130, c => new Views.MonitorWindow(new ViewModels.MonitorViewModel(c))));
+        Modules.Register(new ModuleDefinition("shortcuts", "mod_shortcuts", "\uE765", 140, c => new Views.ShortcutsWindow(new ViewModels.ShortcutsViewModel(c))));
         Modules.Register(new ModuleDefinition("backup", "mod_backup", "\uE74E", 50, c => new Views.BackupWindow(new ViewModels.BackupViewModel(c))));
     }
 
@@ -182,6 +190,8 @@ public sealed class AppController : IDisposable
         if (_hotkey is not null)
         {
             _hotkey.Pressed += () => Panel.Toggle();
+            _hotkey.ModulePressed += OpenModuleById;
+            SyncModuleHotkeys(reportToTray: true);
             var result = SyncHotkey();
             if (result is HotkeyResult.Conflict or HotkeyResult.Invalid)
             {
@@ -522,6 +532,36 @@ public sealed class AppController : IDisposable
 
     // -------------------------------------------------------------------- hotkey
 
+    private void OpenModuleById(string moduleId)
+    {
+        var module = Modules.All.FirstOrDefault(m => m.Id == moduleId);
+        if (module is not null) OpenModule(module);
+    }
+
+    /// <summary>Registers the per-tool hotkeys from the settings. Returns the ids of tools whose hotkey failed.</summary>
+    public IReadOnlyList<string> SyncModuleHotkeys(bool reportToTray = false)
+    {
+        var failed = new List<string>();
+        if (_hotkey is null) return failed;
+
+        _hotkey.UnregisterAllModules();
+        var s = Settings.Current;
+        foreach (var pair in s.ModuleHotkeys)
+        {
+            if (!HotkeyGesture.TryParse(pair.Value, out var gesture)) continue;
+            if (!Modules.All.Any(m => m.Id == pair.Key)) continue;
+            if (_hotkey.RegisterModule(pair.Key, gesture) != HotkeyResult.Registered) failed.Add(pair.Key);
+        }
+
+        if (reportToTray && failed.Count > 0)
+        {
+            var names = string.Join("، ", failed.Select(id => Loc.Get(Modules.All.First(m => m.Id == id).TitleKey, s.Language)));
+            _tray?.ShowBalloon(string.Format(Loc.Get("sc_failed_at_start", s.Language), names));
+        }
+
+        return failed;
+    }
+
     /// <summary>Makes the registered hotkey match the settings and reports what happened.</summary>
     public HotkeyResult SyncHotkey()
     {
@@ -555,6 +595,7 @@ public sealed class AppController : IDisposable
             _tray?.Refresh();
             _fullscreen?.SetEnabled(s.PauseInFullscreen);
             SyncAutostart();
+            ClipboardHistory.Sync();
         }
         catch (Exception ex)
         {
@@ -604,6 +645,7 @@ public sealed class AppController : IDisposable
         _maintenanceTimer?.Stop();
         foreach (var window in new List<Window>(_windows.Values)) window.Close();
         _mediaKeys?.Dispose();
+        ClipboardHistory.Dispose();
         Timers.Dispose();
         Music.Dispose();
         Recorder.Dispose();

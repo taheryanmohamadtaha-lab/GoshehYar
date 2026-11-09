@@ -12,6 +12,8 @@ public static class AppPaths
 
     public static string NotesDatabasePath => Path.Combine(DataDirectory, "notes.db");
 
+    public static string ClipboardDatabasePath => Path.Combine(DataDirectory, "clipboard.db");
+
     public static string PlaylistsPath => Path.Combine(DataDirectory, "playlists.json");
 
     public static string DefaultBackupDirectory => Path.Combine(DataDirectory, "backups");

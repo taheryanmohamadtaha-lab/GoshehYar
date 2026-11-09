@@ -82,6 +82,20 @@
                 <TextBlock Grid.Column="1" Text="{Binding IconSizeText}" HorizontalAlignment="Center" />
             </Grid>
 
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_corner_radius]}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="70" /></Grid.ColumnDefinitions>
+                <Slider Minimum="0" Maximum="28" Value="{Binding CornerRadiusValue}" />
+                <TextBlock Grid.Column="1" Text="{Binding CornerRadiusText}" HorizontalAlignment="Center" />
+            </Grid>
+
+            <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_anim_speed]}" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="70" /></Grid.ColumnDefinitions>
+                <Slider Minimum="0" Maximum="500" Value="{Binding AnimationMsValue}" />
+                <TextBlock Grid.Column="1" Text="{Binding AnimationText}" HorizontalAlignment="Center" />
+            </Grid>
+
             <TextBlock Style="{StaticResource Style.Label}" Text="{Binding [lbl_density]}" />
             <ComboBox ItemsSource="{Binding Densities}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding Density}" />
 

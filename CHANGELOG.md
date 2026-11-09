@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased] - Phase 4 (advanced)
+- System monitor (CPU, RAM, disks, network, battery, uptime), read only while its window is open
+- Clipboard history (text only, off by default, pin/search/clear, skips password-manager copies, not part of backups)
+- Per-tool global shortcuts that open a tool directly
+- Advanced appearance: panel corner radius and show/hide animation length
+
 ## [Unreleased] - Phase 3 (daily widgets)
 - Clock (world clocks), calendar (Jalali/Gregorian, events with exact reminders), weather (Open-Meteo, cached), To-Do with due date/time and exact reminders, timer/stopwatch/Pomodoro, calculator with percent, unit converter, password generator and date tools
 

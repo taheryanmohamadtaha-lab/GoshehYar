@@ -11,6 +11,8 @@ using GoshehYar.App.Services;
 using GoshehYar.App.ViewModels;
 using GoshehYar.App.Views;
 using GoshehYar.Core.Backup;
+using GoshehYar.Core.Calendar;
+using GoshehYar.Core.Tasks;
 using GoshehYar.Core.Input;
 using GoshehYar.Core.Music;
 using GoshehYar.Core.Notes;
@@ -60,17 +62,48 @@ public sealed class AppController : IDisposable
             Logger.Error("Notes database could not be opened; notes are unavailable.", ex);
         }
 
+        try
+        {
+            TaskStore = new TaskStore(AppPaths.NotesDatabasePath);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Tasks database could not be opened; tasks are unavailable.", ex);
+        }
+
+        try
+        {
+            Events = new EventStore(AppPaths.NotesDatabasePath);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Calendar database could not be opened.", ex);
+        }
+
         Backups = new BackupService(AppPaths.DataDirectory, AppPaths.RestoreSafetyDirectory, () => Notes);
         Recorder = new AudioRecorderService();
         Music = new MusicPlayerService(new PlaylistStore(AppPaths.PlaylistsPath), () => Settings.Current, change => Settings.Update(change));
 
+        Timers = new TimerService(this);
+
         ReminderSources.Add(new NotesReminderSource(this));
+        ReminderSources.Add(new CalendarReminderSource(this));
+        ReminderSources.Add(new TaskReminderSource(this));
 
         RegisterModules();
     }
 
     /// <summary>Null when the database file could not be opened.</summary>
     public NoteStore? Notes { get; }
+
+    /// <summary>Null when the database file could not be opened.</summary>
+    public TaskStore? TaskStore { get; }
+
+    /// <summary>Null when the database file could not be opened.</summary>
+    public EventStore? Events { get; }
+
+    /// <summary>Countdown, stopwatch and Pomodoro; they keep running with their window closed.</summary>
+    public TimerService Timers { get; }
 
     public BackupService Backups { get; }
 
@@ -111,6 +144,21 @@ public sealed class AppController : IDisposable
 
             return new Views.NotesWindow(new ViewModels.NotesViewModel(c));
         }));
+        Modules.Register(new ModuleDefinition("clock", "mod_clock", "\uE121", 60, c => new Views.ClockWindow(new ViewModels.ClockViewModel(c))));
+        Modules.Register(new ModuleDefinition("calendar", "mod_calendar", "\uE787", 70, c => new Views.CalendarWindow(new ViewModels.CalendarViewModel(c))));
+        Modules.Register(new ModuleDefinition("weather", "mod_weather", "\uE9CA", 80, c => new Views.WeatherWindow(new ViewModels.WeatherViewModel(c))));
+        Modules.Register(new ModuleDefinition("tasks", "mod_tasks", "\uE73A", 90, c =>
+        {
+            if (c.TaskStore is null)
+            {
+                c.ShowBalloon(Loc.Get("task_db_error", c.Settings.Current.Language));
+                return null;
+            }
+
+            return new Views.TasksWindow(new ViewModels.TasksViewModel(c));
+        }));
+        Modules.Register(new ModuleDefinition("timer", "mod_timer", "\uE916", 100, c => new Views.TimerWindow(new ViewModels.TimerViewModel(c))));
+        Modules.Register(new ModuleDefinition("calc", "mod_calc", "\uE8EF", 110, c => new Views.CalcWindow(new ViewModels.CalcViewModel(c))));
         Modules.Register(new ModuleDefinition("backup", "mod_backup", "\uE74E", 50, c => new Views.BackupWindow(new ViewModels.BackupViewModel(c))));
     }
 
@@ -351,6 +399,51 @@ public sealed class AppController : IDisposable
         }
     }
 
+    /// <summary>Called after task reminders were announced so an open tasks window reloads.</summary>
+    public void RaiseTasksChanged()
+    {
+        if (_windows.TryGetValue("tasks", out var window) && window.DataContext is TasksViewModel vm)
+        {
+            _application.Dispatcher.BeginInvoke(new Action(vm.Refresh));
+        }
+    }
+
+    /// <summary>Postpones a task's reminder by the given number of minutes.</summary>
+    public void SnoozeTask(string id, int minutes)
+    {
+        if (TaskStore is null) return;
+
+        try
+        {
+            TaskStore.SetReminder(id, DateTime.UtcNow.AddMinutes(minutes));
+            RaiseTasksChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Snoozing a task reminder failed.", ex);
+        }
+    }
+
+    /// <summary>Opens the tasks window and shows the given task.</summary>
+    public void OpenTask(string id)
+    {
+        var module = Modules.All.FirstOrDefault(m => m.Id == "tasks");
+        if (module is null) return;
+
+        OpenModule(module);
+        if (_windows.TryGetValue("tasks", out var window) && window.DataContext is TasksViewModel vm) vm.SelectById(id);
+    }
+
+    /// <summary>Opens the calendar window and shows the given event.</summary>
+    public void OpenEvent(string id)
+    {
+        var module = Modules.All.FirstOrDefault(m => m.Id == "calendar");
+        if (module is null) return;
+
+        OpenModule(module);
+        if (_windows.TryGetValue("calendar", out var window) && window.DataContext is CalendarViewModel vm) vm.SelectEvent(id);
+    }
+
     private async Task AutoBackupIfDueAsync()
     {
         var s = Settings.Current;
@@ -511,6 +604,7 @@ public sealed class AppController : IDisposable
         _maintenanceTimer?.Stop();
         foreach (var window in new List<Window>(_windows.Values)) window.Close();
         _mediaKeys?.Dispose();
+        Timers.Dispose();
         Music.Dispose();
         Recorder.Dispose();
 

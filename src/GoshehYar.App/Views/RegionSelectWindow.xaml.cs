@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 using GoshehYar.App.Interop;
 using GoshehYar.App.Services;
 using GoshehYar.Core.Localization;
@@ -13,18 +15,22 @@ using GoshehYar.Core.Settings;
 namespace GoshehYar.App.Views;
 
 /// <summary>
-/// Full-screen overlay that shows a frozen copy of the desktop. The user drags a rectangle; the result is cut
+/// Overlay for ONE monitor that shows a frozen copy of that monitor. The user drags a rectangle; the result is cut
 /// out of that frozen copy, so nothing on screen can change between the click and the picture.
+/// One overlay is opened per monitor (see <see cref="RegionSelector"/>), so every monitor keeps its own scale (DPI)
+/// and mouse positions can never be mixed up between monitors.
 /// </summary>
 public partial class RegionSelectWindow : Window
 {
     private readonly Bitmap _frozen;
+    private readonly Rectangle _bounds;
     private System.Windows.Point _start;
     private bool _dragging;
 
-    public RegionSelectWindow(Bitmap frozen, AppLanguage language)
+    public RegionSelectWindow(Bitmap frozen, Rectangle bounds, AppLanguage language)
     {
         _frozen = frozen;
+        _bounds = bounds;
         InitializeComponent();
 
         var source = ScreenshotService.ToBitmapSource(frozen);
@@ -32,24 +38,41 @@ public partial class RegionSelectWindow : Window
         BrightImage.Source = source;
         HintText.Text = Loc.Get("shot_region_hint", language);
         FlowDirection = language == AppLanguage.Persian ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+
+        // Moving the window to another monitor changes its DPI; put it back on the exact monitor rectangle afterwards.
+        DpiChanged += (_, _) => Dispatcher.BeginInvoke(new Action(Place), DispatcherPriority.Background);
+        Loaded += (_, _) => Place();
     }
 
-    /// <summary>The selected part of the screen; null when cancelled.</summary>
-    public Bitmap? Result { get; private set; }
+    /// <summary>Raised once with the cropped picture, or with null when the user cancelled.</summary>
+    public event Action<RegionSelectWindow, Bitmap?>? Completed;
+
+    /// <summary>The monitor rectangle in physical pixels (virtual desktop coordinates).</summary>
+    public Rectangle MonitorBounds => _bounds;
+
+    private void Place()
+    {
+        var handle = new WindowInteropHelper(this).Handle;
+        if (handle == IntPtr.Zero) return;
+        NativeMethods.SetWindowPos(handle, new IntPtr(-1), _bounds.X, _bounds.Y, _bounds.Width, _bounds.Height, NativeMethods.SWP_NOACTIVATE);
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        _frozen.Dispose();
+    }
 
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
-
-        // Cover the whole virtual desktop exactly, in physical pixels.
-        var area = ScreenshotService.VirtualScreen;
-        var handle = new WindowInteropHelper(this).Handle;
-        NativeMethods.SetWindowPos(handle, new IntPtr(-1), area.X, area.Y, area.Width, area.Height, 0);
+        Place();
     }
 
     protected override void OnContentRendered(EventArgs e)
     {
         base.OnContentRendered(e);
+        Place();
         Activate();
         Focus();
     }
@@ -62,11 +85,7 @@ public partial class RegionSelectWindow : Window
 
     private void OnCancel(object sender, MouseButtonEventArgs e) => Cancel();
 
-    private void Cancel()
-    {
-        Result = null;
-        DialogResult = false;
-    }
+    private void Cancel() => Completed?.Invoke(this, null);
 
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
     {
@@ -101,8 +120,7 @@ public partial class RegionSelectWindow : Window
 
         try
         {
-            Result = ScreenshotService.Crop(_frozen, rect);
-            DialogResult = true;
+            Completed?.Invoke(this, ScreenshotService.Crop(_frozen, rect));
         }
         catch (ArgumentException)
         {
@@ -142,5 +160,71 @@ public partial class RegionSelectWindow : Window
             (int)Math.Round(r.Y * scaleY),
             (int)Math.Round(r.Width * scaleX),
             (int)Math.Round(r.Height * scaleY));
+    }
+}
+
+/// <summary>Opens one selection overlay per monitor and waits until the user selects an area or cancels.</summary>
+public static class RegionSelector
+{
+    /// <summary>Returns the selected picture, or null when cancelled. <paramref name="frozen"/> is the whole virtual desktop.</summary>
+    public static Bitmap? Select(Bitmap frozen, AppLanguage language)
+    {
+        var virtualScreen = ScreenshotService.VirtualScreen;
+        var windows = new List<RegionSelectWindow>();
+        Bitmap? result = null;
+        var finished = false;
+        var frame = new DispatcherFrame();
+
+        void Done(RegionSelectWindow sender, Bitmap? picture)
+        {
+            if (finished)
+            {
+                picture?.Dispose();
+                return;
+            }
+
+            finished = true;
+            result = picture;
+            foreach (var w in windows.ToArray())
+            {
+                w.Completed -= Done;
+                try { w.Close(); } catch (InvalidOperationException) { /* already closing */ }
+            }
+
+            frame.Continue = false;
+        }
+
+        foreach (var monitor in ScreenService.GetMonitors())
+        {
+            var bounds = new Rectangle((int)Math.Round(monitor.Bounds.X), (int)Math.Round(monitor.Bounds.Y),
+                (int)Math.Round(monitor.Bounds.Width), (int)Math.Round(monitor.Bounds.Height));
+            var relative = new Rectangle(bounds.X - virtualScreen.X, bounds.Y - virtualScreen.Y, bounds.Width, bounds.Height);
+
+            Bitmap piece;
+            try
+            {
+                piece = ScreenshotService.Crop(frozen, relative);
+            }
+            catch (ArgumentException)
+            {
+                continue;
+            }
+
+            var window = new RegionSelectWindow(piece, bounds, language);
+            window.Completed += Done;
+            windows.Add(window);
+        }
+
+        if (windows.Count == 0) return null;
+
+        foreach (var w in windows) w.Show();
+
+        // Give the keyboard focus to the overlay under the mouse so Esc works at once.
+        var cursor = System.Windows.Forms.Cursor.Position;
+        var under = windows.Find(w => w.MonitorBounds.Contains(cursor.X, cursor.Y)) ?? windows[0];
+        under.Activate();
+
+        Dispatcher.PushFrame(frame);
+        return result;
     }
 }

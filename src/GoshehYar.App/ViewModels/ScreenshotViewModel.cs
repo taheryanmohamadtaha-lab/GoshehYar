@@ -37,6 +37,7 @@ public sealed class ScreenshotViewModel : LocalizedViewModel
         OpenFolderCommand = new RelayCommand(OpenFolder);
         BrowseFolderCommand = new RelayCommand(BrowseFolder);
         RefreshWindowsCommand = new RelayCommand(RefreshWindows);
+        IdentifyMonitorsCommand = new RelayCommand(() => MonitorIdentifier.Show(ScreenService.GetMonitors()));
 
         RefreshMonitors();
         RefreshWindows();
@@ -50,6 +51,7 @@ public sealed class ScreenshotViewModel : LocalizedViewModel
 
     public ICommand CaptureFullCommand { get; }
     public ICommand CaptureMonitorCommand { get; }
+    public ICommand IdentifyMonitorsCommand { get; }
     public ICommand CaptureWindowCommand { get; }
     public ICommand CaptureRegionCommand { get; }
     public ICommand SaveCommand { get; }
@@ -132,7 +134,9 @@ public sealed class ScreenshotViewModel : LocalizedViewModel
         var index = 1;
         foreach (var m in ScreenService.GetMonitors())
         {
-            Monitors.Add(new OptionItem<string>(m.DeviceName, Num($"{index}: {m.Bounds.Width:0}×{m.Bounds.Height:0}") + (m.IsPrimary ? " ★" : "")));
+            // The number is the Windows display number (Settings > Display > Identify).
+            var number = ScreenService.DisplayNumber(m.DeviceName, index);
+            Monitors.Add(new OptionItem<string>(m.DeviceName, Num($"{number}: {m.Bounds.Width:0}×{m.Bounds.Height:0}") + (m.IsPrimary ? " ★" : "")));
             index++;
         }
 
@@ -228,8 +232,7 @@ public sealed class ScreenshotViewModel : LocalizedViewModel
             default:
                 using (var frozen = ScreenshotService.CaptureVirtualScreen())
                 {
-                    var overlay = new RegionSelectWindow(frozen, S.Language);
-                    return overlay.ShowDialog() == true ? overlay.Result : null;
+                    return RegionSelector.Select(frozen, S.Language);
                 }
         }
     }

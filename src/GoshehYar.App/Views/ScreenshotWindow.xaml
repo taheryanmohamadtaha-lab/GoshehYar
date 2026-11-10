@@ -33,6 +33,8 @@
 
             <DockPanel Grid.Row="1" Grid.Column="0" Margin="0,0,4,8">
                 <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{Binding [shot_monitor_btn]}" Command="{Binding CaptureMonitorCommand}" />
+                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="&#xE7F4;" FontFamily="Segoe MDL2 Assets" Padding="9,6"
+                        ToolTip="{Binding [shot_identify]}" Command="{Binding IdentifyMonitorsCommand}" />
                 <ComboBox ItemsSource="{Binding Monitors}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding SelectedMonitor}" />
             </DockPanel>
 

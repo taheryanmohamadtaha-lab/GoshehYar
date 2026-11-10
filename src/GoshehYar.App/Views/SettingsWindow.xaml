@@ -21,11 +21,8 @@
             <Setter Property="Foreground" Value="{DynamicResource Brush.Foreground}" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
-        <Style TargetType="CheckBox">
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
             <Setter Property="Margin" Value="0,8,0,0" />
-            <Setter Property="Foreground" Value="{DynamicResource Brush.Foreground}" />
         </Style>
         <Style TargetType="ComboBox">
             <Setter Property="Foreground" Value="Black" />

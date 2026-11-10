@@ -53,6 +53,18 @@ public static class ScreenService
         return new MonitorInfo("", fallback, fallback, 1.0, true);
     }
 
+    /// <summary>The number Windows shows for the display ("\\.\DISPLAY3" gives 3). Falls back to the list position.</summary>
+    public static int DisplayNumber(string? deviceName, int fallback)
+    {
+        if (!string.IsNullOrEmpty(deviceName))
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(deviceName, @"DISPLAY(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (match.Success && int.TryParse(match.Groups[1].Value, out var n) && n > 0) return n;
+        }
+
+        return fallback;
+    }
+
     private static double GetScale(int x, int y)
     {
         try

@@ -123,6 +123,7 @@ public static class Loc
         ["shot_ready"] = ("آماده عکس‌برداری.", "Ready to capture."),
         ["shot_full"] = ("کل صفحه", "Full screen"),
         ["shot_region"] = ("انتخاب محدوده با ماوس", "Select an area"),
+        ["shot_identify"] = ("نمایش شماره مانیتورها", "Show monitor numbers"),
         ["shot_monitor_btn"] = ("عکس از مانیتور", "Capture monitor"),
         ["shot_window_btn"] = ("عکس از پنجره", "Capture window"),
         ["shot_refresh_windows"] = ("به‌روزرسانی فهرست پنجره‌ها", "Refresh window list"),

@@ -44,7 +44,12 @@ public enum ThemeId
     Emerald,
     Ocean,
     MinimalBlack,
-    GlassTransparent
+    GlassTransparent,
+    NeonPinkLight,
+    NeonCyanLight,
+    NeonLimeLight,
+    NeonVioletLight,
+    NeonOrangeLight
 }
 
 public enum ImageFormat { Png, Jpg }

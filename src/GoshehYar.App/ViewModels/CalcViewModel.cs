@@ -64,6 +64,7 @@ public sealed class CalcViewModel : LocalizedViewModel
         Categories = UnitConverter.Categories.Select(c => new CategoryOption(c.Id, this["calc_cat_" + c.Id])).ToList();
         RebuildUnits(resetSelection: true);
         GeneratePassword();
+        InitDateConverter();
     }
 
     public ICommand InputCommand { get; }
@@ -461,5 +462,375 @@ public sealed class CalcViewModel : LocalizedViewModel
             if (_fromDate is null || _toDate is null) return "";
             return Fmt("calc_date_total", DateDifference.Compute(_fromDate.Value, _toDate.Value).TotalDays);
         }
+    }
+
+    // ================================================================ date converter (Jalali <-> Gregorian)
+
+    private string _jYear = "", _jMonth = "", _jDay = "";
+    private string _gYear = "", _gMonth = "", _gDay = "";
+    private string _yearJ = "", _yearG = "";
+
+    private void InitDateConverter()
+    {
+        var now = DateTime.Today;
+        var j = DateConverter.GregorianToJalali(now.Year, now.Month, now.Day);
+        if (j is { } t)
+        {
+            _jYear = t.Year.ToString(CultureInfo.InvariantCulture);
+            _jMonth = t.Month.ToString(CultureInfo.InvariantCulture);
+            _jDay = t.Day.ToString(CultureInfo.InvariantCulture);
+            _yearJ = _jYear;
+        }
+
+        _gYear = now.Year.ToString(CultureInfo.InvariantCulture);
+        _gMonth = now.Month.ToString(CultureInfo.InvariantCulture);
+        _gDay = now.Day.ToString(CultureInfo.InvariantCulture);
+        _yearG = _gYear;
+    }
+
+    private void OnDateConvChanged()
+    {
+        OnPropertyChanged(nameof(JalaliToGregorianResult));
+        OnPropertyChanged(nameof(GregorianToJalaliResult));
+        OnPropertyChanged(nameof(YearJResult));
+        OnPropertyChanged(nameof(YearGResult));
+    }
+
+    public string JYear { get => _jYear; set { _jYear = value ?? ""; OnPropertyChanged(); OnDateConvChanged(); } }
+    public string JMonth { get => _jMonth; set { _jMonth = value ?? ""; OnPropertyChanged(); OnDateConvChanged(); } }
+    public string JDay { get => _jDay; set { _jDay = value ?? ""; OnPropertyChanged(); OnDateConvChanged(); } }
+    public string GYear { get => _gYear; set { _gYear = value ?? ""; OnPropertyChanged(); OnDateConvChanged(); } }
+    public string GMonth { get => _gMonth; set { _gMonth = value ?? ""; OnPropertyChanged(); OnDateConvChanged(); } }
+    public string GDay { get => _gDay; set { _gDay = value ?? ""; OnPropertyChanged(); OnDateConvChanged(); } }
+    public string YearJ { get => _yearJ; set { _yearJ = value ?? ""; OnPropertyChanged(); OnDateConvChanged(); } }
+    public string YearG { get => _yearG; set { _yearG = value ?? ""; OnPropertyChanged(); OnDateConvChanged(); } }
+
+    private bool Persian => S.Language == GoshehYar.Core.Settings.AppLanguage.Persian;
+
+    private string GregorianText(DateTime d) =>
+        Num(d.ToString("yyyy/MM/dd", CultureInfo.InvariantCulture)) + " — " + (Persian
+            ? DateNames.GregorianMonthsFa[d.Month - 1]
+            : DateNames.GregorianMonthsEn[d.Month - 1]);
+
+    private string JalaliText((int Year, int Month, int Day) j) =>
+        Num(string.Format(CultureInfo.InvariantCulture, "{0}/{1:00}/{2:00}", j.Year, j.Month, j.Day)) + " — " + (Persian
+            ? DateNames.JalaliMonthsFa[j.Month - 1]
+            : DateNames.JalaliMonthsEn[j.Month - 1]);
+
+    public string JalaliToGregorianResult
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_jYear) && string.IsNullOrWhiteSpace(_jMonth) && string.IsNullOrWhiteSpace(_jDay)) return "";
+            if (!DateConverter.TryParseInt(_jYear, out var y) || !DateConverter.TryParseInt(_jMonth, out var m) || !DateConverter.TryParseInt(_jDay, out var d)) return this["dc_invalid"];
+            var g = DateConverter.JalaliToGregorian(y, m, d);
+            if (g is null) return this["dc_invalid"];
+            return Fmt("dc_result_j2g", GregorianText(g.Value), DateNames.WeekdayName(g.Value.DayOfWeek, S.Language));
+        }
+    }
+
+    public string GregorianToJalaliResult
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_gYear) && string.IsNullOrWhiteSpace(_gMonth) && string.IsNullOrWhiteSpace(_gDay)) return "";
+            if (!DateConverter.TryParseInt(_gYear, out var y) || !DateConverter.TryParseInt(_gMonth, out var m) || !DateConverter.TryParseInt(_gDay, out var d)) return this["dc_invalid"];
+            var j = DateConverter.GregorianToJalali(y, m, d);
+            if (j is null) return this["dc_invalid"];
+            var weekday = new DateTime(y, m, d).DayOfWeek;
+            return Fmt("dc_result_g2j", JalaliText(j.Value), DateNames.WeekdayName(weekday, S.Language));
+        }
+    }
+
+    public string YearJResult
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_yearJ)) return "";
+            if (!DateConverter.TryParseInt(_yearJ, out var y)) return this["dc_invalid"];
+            var r = DateConverter.JalaliYearToGregorian(y);
+            if (r is null) return this["dc_invalid"];
+            return Fmt("dc_year_j2g", Num(y.ToString(CultureInfo.InvariantCulture)),
+                Num(r.Value.Start.ToString("yyyy/MM/dd", CultureInfo.InvariantCulture)),
+                Num(r.Value.End.ToString("yyyy/MM/dd", CultureInfo.InvariantCulture)),
+                DateConverter.IsJalaliLeap(y) ? this["dc_leap"] : "");
+        }
+    }
+
+    public string YearGResult
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_yearG)) return "";
+            if (!DateConverter.TryParseInt(_yearG, out var y)) return this["dc_invalid"];
+            var r = DateConverter.GregorianYearToJalali(y);
+            if (r is null) return this["dc_invalid"];
+            string F((int Year, int Month, int Day) j) =>
+                Num(string.Format(CultureInfo.InvariantCulture, "{0}/{1:00}/{2:00}", j.Year, j.Month, j.Day));
+            return Fmt("dc_year_g2j", Num(y.ToString(CultureInfo.InvariantCulture)), F(r.Value.Start), F(r.Value.End));
+        }
+    }
+
+    // ================================================================ bank / finance
+
+    private string _finPrincipal = "100000000", _finRate = "23", _finDays = "30", _finYears = "1";
+    private int _finBasis = 365, _finFreq = 12;
+    private string _rateAnnual = "23", _rateDaily = "", _rateMonthly = "";
+    private string _savInitial = "0", _savDeposit = "10000000", _savRate = "23", _savMonths = "12";
+    private string _loanAmount = "500000000", _loanRate = "23", _loanMonths = "24";
+    private IReadOnlyList<OptionItem<int>>? _basisOptions, _freqOptions;
+
+    public IReadOnlyList<OptionItem<int>> BasisOptions => _basisOptions ??= new[]
+    {
+        new OptionItem<int>(365, this["fin_basis_365"]),
+        new OptionItem<int>(360, this["fin_basis_360"]),
+    };
+
+    public IReadOnlyList<OptionItem<int>> FreqOptions => _freqOptions ??= new[]
+    {
+        new OptionItem<int>(1, this["fin_freq_1"]),
+        new OptionItem<int>(4, this["fin_freq_4"]),
+        new OptionItem<int>(12, this["fin_freq_12"]),
+        new OptionItem<int>(365, this["fin_freq_365"]),
+    };
+
+    private static decimal? ParseMoney(string text) =>
+        Parse((text ?? "").Replace(",", "").Replace("٬", "").Replace("،", "").Replace(" ", ""));
+
+    private string Money(decimal? v) =>
+        v is null ? "" : Num(Math.Round(v.Value, 2, MidpointRounding.AwayFromZero).ToString("#,##0.##", CultureInfo.InvariantCulture));
+
+    private string Pct(decimal? v) =>
+        v is null ? "" : Num(Math.Round(v.Value, 4, MidpointRounding.AwayFromZero).ToString("0.####", CultureInfo.InvariantCulture));
+
+    private string Line(string key, string value) => value.Length == 0 ? "" : Fmt(key, value);
+
+    private void NotifySimple()
+    {
+        OnPropertyChanged(nameof(SimpleProfit));
+        OnPropertyChanged(nameof(SimpleTotal));
+        OnPropertyChanged(nameof(SimpleDay));
+        OnPropertyChanged(nameof(SimpleMonth));
+        OnPropertyChanged(nameof(SimpleYear));
+        OnPropertyChanged(nameof(CompoundTotal));
+        OnPropertyChanged(nameof(CompoundProfit));
+        OnPropertyChanged(nameof(CompoundEffective));
+    }
+
+    public string FinPrincipal { get => _finPrincipal; set { _finPrincipal = value ?? ""; OnPropertyChanged(); NotifySimple(); } }
+    public string FinRate { get => _finRate; set { _finRate = value ?? ""; OnPropertyChanged(); NotifySimple(); } }
+    public string FinDays { get => _finDays; set { _finDays = value ?? ""; OnPropertyChanged(); NotifySimple(); } }
+    public string FinYears { get => _finYears; set { _finYears = value ?? ""; OnPropertyChanged(); NotifySimple(); } }
+
+    public int FinBasis
+    {
+        get => _finBasis;
+        set { if (value <= 0) return; _finBasis = value; OnPropertyChanged(); NotifySimple(); OnRatesChanged(); }
+    }
+
+    public int FinFreq
+    {
+        get => _finFreq;
+        set { if (value <= 0) return; _finFreq = value; OnPropertyChanged(); NotifySimple(); }
+    }
+
+    private decimal? SimpleInterestValue()
+    {
+        var p = ParseMoney(_finPrincipal);
+        var r = ParseMoney(_finRate);
+        var d = ParseMoney(_finDays);
+        return p is null || r is null || d is null ? null : FinanceTools.SimpleInterest(p.Value, r.Value, d.Value, _finBasis);
+    }
+
+    public string SimpleProfit => Line("fin_simple_profit", Money(SimpleInterestValue()));
+
+    public string SimpleTotal
+    {
+        get
+        {
+            var p = ParseMoney(_finPrincipal);
+            var i = SimpleInterestValue();
+            return p is null || i is null ? "" : Line("fin_simple_total", Money(p.Value + i.Value));
+        }
+    }
+
+    private decimal? InterestForDays(decimal days)
+    {
+        var p = ParseMoney(_finPrincipal);
+        var r = ParseMoney(_finRate);
+        return p is null || r is null ? null : FinanceTools.SimpleInterest(p.Value, r.Value, days, _finBasis);
+    }
+
+    public string SimpleDay => Line("fin_simple_day", Money(InterestForDays(1)));
+    public string SimpleMonth => Line("fin_simple_month", Money(InterestForDays(_finBasis / 12m)));
+    public string SimpleYear => Line("fin_simple_year", Money(InterestForDays(_finBasis)));
+
+    private decimal? CompoundValue()
+    {
+        var p = ParseMoney(_finPrincipal);
+        var r = ParseMoney(_finRate);
+        var y = ParseMoney(_finYears);
+        return p is null || r is null || y is null ? null : FinanceTools.CompoundFinal(p.Value, r.Value, y.Value, _finFreq);
+    }
+
+    public string CompoundTotal => Line("fin_compound_total", Money(CompoundValue()));
+
+    public string CompoundProfit
+    {
+        get
+        {
+            var p = ParseMoney(_finPrincipal);
+            var total = CompoundValue();
+            return p is null || total is null ? "" : Line("fin_compound_profit", Money(total.Value - p.Value));
+        }
+    }
+
+    public string CompoundEffective
+    {
+        get
+        {
+            var r = ParseMoney(_finRate);
+            return r is null ? "" : Line("fin_compound_effective", Pct(FinanceTools.EffectiveAnnualPercent(r.Value, _finFreq)));
+        }
+    }
+
+    // ---- rate converter
+
+    private void OnRatesChanged()
+    {
+        OnPropertyChanged(nameof(RatesFromAnnual));
+        OnPropertyChanged(nameof(RatesFromDaily));
+        OnPropertyChanged(nameof(RatesFromMonthly));
+    }
+
+    public string RateAnnual { get => _rateAnnual; set { _rateAnnual = value ?? ""; OnPropertyChanged(); OnRatesChanged(); } }
+    public string RateDaily { get => _rateDaily; set { _rateDaily = value ?? ""; OnPropertyChanged(); OnRatesChanged(); } }
+    public string RateMonthly { get => _rateMonthly; set { _rateMonthly = value ?? ""; OnPropertyChanged(); OnRatesChanged(); } }
+
+    public string RatesFromAnnual
+    {
+        get
+        {
+            var a = ParseMoney(_rateAnnual);
+            if (a is null) return "";
+            var d = FinanceTools.DailyPercent(a.Value, _finBasis);
+            var m = FinanceTools.MonthlyPercent(a.Value);
+            return d is null || m is null ? "" : Fmt("fin_rates_from_annual", Pct(d), Pct(m));
+        }
+    }
+
+    public string RatesFromDaily
+    {
+        get
+        {
+            var d = ParseMoney(_rateDaily);
+            return d is null ? "" : Line("fin_rates_from_daily", Pct(FinanceTools.AnnualFromDailyPercent(d.Value, _finBasis)));
+        }
+    }
+
+    public string RatesFromMonthly
+    {
+        get
+        {
+            var m = ParseMoney(_rateMonthly);
+            return m is null ? "" : Line("fin_rates_from_monthly", Pct(FinanceTools.AnnualFromMonthlyPercent(m.Value)));
+        }
+    }
+
+    // ---- savings
+
+    private void OnSavingsChanged()
+    {
+        OnPropertyChanged(nameof(SavingsTotal));
+        OnPropertyChanged(nameof(SavingsPaid));
+        OnPropertyChanged(nameof(SavingsProfit));
+    }
+
+    public string SavInitial { get => _savInitial; set { _savInitial = value ?? ""; OnPropertyChanged(); OnSavingsChanged(); } }
+    public string SavDeposit { get => _savDeposit; set { _savDeposit = value ?? ""; OnPropertyChanged(); OnSavingsChanged(); } }
+    public string SavRate { get => _savRate; set { _savRate = value ?? ""; OnPropertyChanged(); OnSavingsChanged(); } }
+    public string SavMonths { get => _savMonths; set { _savMonths = value ?? ""; OnPropertyChanged(); OnSavingsChanged(); } }
+
+    private decimal? SavingsValue()
+    {
+        var i = ParseMoney(_savInitial);
+        var d = ParseMoney(_savDeposit);
+        var r = ParseMoney(_savRate);
+        var m = ParseMoney(_savMonths);
+        if (i is null || d is null || r is null || m is null || m.Value != Math.Floor(m.Value) || m.Value > 1200) return null;
+        return FinanceTools.SavingsFinal(i.Value, d.Value, r.Value, (int)m.Value);
+    }
+
+    private decimal? SavingsPaidValue()
+    {
+        var i = ParseMoney(_savInitial);
+        var d = ParseMoney(_savDeposit);
+        var m = ParseMoney(_savMonths);
+        return i is null || d is null || m is null ? null : i.Value + d.Value * m.Value;
+    }
+
+    public string SavingsTotal => Line("fin_savings_total", Money(SavingsValue()));
+    public string SavingsPaid => Line("fin_savings_paid", Money(SavingsPaidValue()));
+
+    public string SavingsProfit
+    {
+        get
+        {
+            var total = SavingsValue();
+            var paid = SavingsPaidValue();
+            return total is null || paid is null ? "" : Line("fin_savings_profit", Money(total.Value - paid.Value));
+        }
+    }
+
+    // ---- loan
+
+    private void OnLoanChanged()
+    {
+        OnPropertyChanged(nameof(LoanPaymentText));
+        OnPropertyChanged(nameof(LoanTotalText));
+        OnPropertyChanged(nameof(LoanInterestText));
+    }
+
+    public string LoanAmount { get => _loanAmount; set { _loanAmount = value ?? ""; OnPropertyChanged(); OnLoanChanged(); } }
+    public string LoanRate { get => _loanRate; set { _loanRate = value ?? ""; OnPropertyChanged(); OnLoanChanged(); } }
+    public string LoanMonths { get => _loanMonths; set { _loanMonths = value ?? ""; OnPropertyChanged(); OnLoanChanged(); } }
+
+    private decimal? LoanPaymentValue()
+    {
+        var a = ParseMoney(_loanAmount);
+        var r = ParseMoney(_loanRate);
+        var m = ParseMoney(_loanMonths);
+        if (a is null || r is null || m is null || m.Value != Math.Floor(m.Value) || m.Value > 1200) return null;
+        return FinanceTools.LoanPayment(a.Value, r.Value, (int)m.Value);
+    }
+
+    public string LoanPaymentText => Line("fin_loan_payment", Money(LoanPaymentValue()));
+
+    public string LoanTotalText
+    {
+        get
+        {
+            var pay = LoanPaymentValue();
+            var m = ParseMoney(_loanMonths);
+            return pay is null || m is null ? "" : Line("fin_loan_total", Money(pay.Value * m.Value));
+        }
+    }
+
+    public string LoanInterestText
+    {
+        get
+        {
+            var pay = LoanPaymentValue();
+            var m = ParseMoney(_loanMonths);
+            var a = ParseMoney(_loanAmount);
+            return pay is null || m is null || a is null ? "" : Line("fin_loan_interest", Money(pay.Value * m.Value - a.Value));
+        }
+    }
+
+    protected override void OnSettingsChanged(object? sender, EventArgs e)
+    {
+        _basisOptions = null;
+        _freqOptions = null;
+        base.OnSettingsChanged(sender, e);
     }
 }

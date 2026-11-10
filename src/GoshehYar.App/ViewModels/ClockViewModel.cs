@@ -154,26 +154,45 @@ public sealed class ClockViewModel : LocalizedViewModel
 
     public bool HasNoZones => WorldClocks.Count == 0;
 
-    private static IReadOnlyList<OptionItem<string>> BuildZoneOptions()
+    private IReadOnlyList<OptionItem<string>> BuildZoneOptions()
     {
         var now = DateTime.UtcNow;
+        var persian = S.Language == GoshehYar.Core.Settings.AppLanguage.Persian;
+        var list = new List<OptionItem<string>>();
         try
         {
-            return TimeZoneInfo.GetSystemTimeZones()
-                .Select(z => new OptionItem<string>(z.Id, WorldClock.PickerLabel(z, now)))
-                .ToList();
+            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // Well-known cities first, with friendly names.
+            foreach (var city in WorldCities.Main)
+            {
+                var zone = WorldClock.Resolve(city.ZoneId);
+                if (zone is null || !used.Add(zone.Id)) continue;
+                list.Add(new OptionItem<string>(zone.Id, (persian ? city.Fa : city.En) + " (" + WorldClock.UtcOffsetText(zone, now) + ")"));
+            }
+
+            // Then every other zone installed on this computer.
+            foreach (var z in TimeZoneInfo.GetSystemTimeZones())
+            {
+                if (used.Contains(z.Id)) continue;
+                list.Add(new OptionItem<string>(z.Id, WorldClock.PickerLabel(z, now)));
+            }
         }
         catch (Exception ex)
         {
             Logger.Error("Clock: listing time zones failed", ex);
-            return new List<OptionItem<string>>();
         }
+
+        return list;
     }
 
     protected override void OnSettingsChanged(object? sender, EventArgs e)
     {
         base.OnSettingsChanged(sender, e);
-        // Language/digits may have changed: refresh texts.
+        // The language may have changed: rename the cities and refill the picker.
+        _zoneOptions = null;
+        RebuildWorldClocks();
+        OnPropertyChanged(nameof(ZoneOptions));
         Tick();
     }
 
@@ -226,7 +245,7 @@ public sealed class ClockViewModel : LocalizedViewModel
             var zone = WorldClock.Resolve(id);
             if (zone == null) continue;
             _zones.Add((id, zone));
-            WorldClocks.Add(new WorldClockItem(id, WorldClock.CityName(zone)));
+            WorldClocks.Add(new WorldClockItem(id, WorldCities.NameFor(id, S.Language == GoshehYar.Core.Settings.AppLanguage.Persian) ?? WorldClock.CityName(zone)));
         }
 
         OnPropertyChanged(nameof(HasNoZones));

@@ -212,7 +212,7 @@ public sealed class AppSettings
 
         if (!Enum.IsDefined(CalendarKind)) CalendarKind = CalendarKind.Persian;
         WorldClockZones ??= new List<string>();
-        WorldClockZones = WorldClockZones.Where(z => !string.IsNullOrWhiteSpace(z)).Distinct().Take(8).ToList();
+        WorldClockZones = WorldClockZones.Where(z => !string.IsNullOrWhiteSpace(z)).Distinct().Take(12).ToList();
         WeatherCity ??= "";
         WeatherCountry ??= "";
         WeatherLatitude = Clamp(WeatherLatitude, -90, 90);

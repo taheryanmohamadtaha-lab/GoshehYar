@@ -25,6 +25,12 @@ public static class ThemeCatalog
         [ThemeId.Ocean] = new(ThemeId.Ocean, true, "#08202B", "#0E3345", "#E6F8FF", "#8CBBCC", "#22B8E6", "#1B4F66"),
         [ThemeId.MinimalBlack] = new(ThemeId.MinimalBlack, true, "#000000", "#141414", "#FFFFFF", "#8A8A8A", "#FFFFFF", "#2A2A2A"),
         [ThemeId.GlassTransparent] = new(ThemeId.GlassTransparent, true, "#A61E2230", "#33FFFFFF", "#FFFFFF", "#C5CAD6", "#7DB7FF", "#40FFFFFF"),
+        // Light neon themes: pale background, vivid accent.
+        [ThemeId.NeonPinkLight] = new(ThemeId.NeonPinkLight, false, "#FFF5FB", "#FFE0F1", "#2A0A1E", "#8A5472", "#F0127F", "#FFB3DA"),
+        [ThemeId.NeonCyanLight] = new(ThemeId.NeonCyanLight, false, "#F2FEFF", "#D5F7FB", "#06222A", "#4B7F8A", "#00AFCF", "#9BE6F2"),
+        [ThemeId.NeonLimeLight] = new(ThemeId.NeonLimeLight, false, "#F8FFEE", "#E2F9C8", "#14260A", "#5E7F45", "#46B800", "#BDE88C"),
+        [ThemeId.NeonVioletLight] = new(ThemeId.NeonVioletLight, false, "#FAF3FF", "#EBD9FF", "#1F0A33", "#7B5E99", "#9D2CFF", "#D2B2FF"),
+        [ThemeId.NeonOrangeLight] = new(ThemeId.NeonOrangeLight, false, "#FFF8F0", "#FFE6CC", "#2B1400", "#98693A", "#FF6A00", "#FFC999"),
     };
 
     public static IReadOnlyList<ThemeId> All { get; } = Enum.GetValues<ThemeId>();

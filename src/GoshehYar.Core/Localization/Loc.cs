@@ -87,6 +87,11 @@ public static class Loc
         ["theme_DarkModern"] = ("تیره مدرن", "Dark Modern"),
         ["theme_LightModern"] = ("روشن مدرن", "Light Modern"),
         ["theme_MidnightBlue"] = ("آبی نیمه‌شب", "Midnight Blue"),
+        ["theme_NeonPinkLight"] = ("نئون صورتی (روشن)", "Neon Pink (light)"),
+        ["theme_NeonCyanLight"] = ("نئون فیروزه‌ای (روشن)", "Neon Cyan (light)"),
+        ["theme_NeonLimeLight"] = ("نئون سبز لیمویی (روشن)", "Neon Lime (light)"),
+        ["theme_NeonVioletLight"] = ("نئون بنفش (روشن)", "Neon Violet (light)"),
+        ["theme_NeonOrangeLight"] = ("نئون نارنجی (روشن)", "Neon Orange (light)"),
         ["theme_PurpleNeon"] = ("بنفش نئون", "Purple Neon"),
         ["theme_Emerald"] = ("زمردی", "Emerald"),
         ["theme_Ocean"] = ("اقیانوسی", "Ocean"),
@@ -270,7 +275,7 @@ public static class Loc
         var all = new Dictionary<string, (string Fa, string En)>(BaseTable);
         foreach (var extra in new[]
                  {
-                     LocClock.Table, LocCalendar.Table, LocWeather.Table, LocTasks.Table, LocTimer.Table, LocCalc.Table, LocMonitor.Table, LocClipboard.Table
+                     LocClock.Table, LocCalendar.Table, LocWeather.Table, LocTasks.Table, LocTimer.Table, LocCalc.Table, LocMonitor.Table, LocClipboard.Table, LocFinance.Table
                  })
         {
             foreach (var pair in extra)

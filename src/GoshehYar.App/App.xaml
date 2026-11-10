@@ -4,6 +4,14 @@
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
 
+        <!-- Check boxes and radio buttons fill the row, so in right-to-left layouts the box sits at the right edge. -->
+        <Style TargetType="CheckBox">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+        <Style TargetType="RadioButton">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+
         <!-- Round, hover-aware button used by the floating panel. Colors come from the active theme. -->
         <Style x:Key="Style.ToolButton" TargetType="Button">
             <Setter Property="Foreground" Value="{DynamicResource Brush.Foreground}" />

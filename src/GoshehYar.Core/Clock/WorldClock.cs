@@ -3,7 +3,7 @@ namespace GoshehYar.Core.Clock;
 /// <summary>Helpers for the world clocks: safe zone lookup, time in a zone, day offset and UTC offset text.</summary>
 public static class WorldClock
 {
-    public const int MaxZones = 8;
+    public const int MaxZones = 12;
 
     /// <summary>Finds a zone by its Windows id; returns null (never throws) when it does not exist on this computer.</summary>
     public static TimeZoneInfo? Resolve(string? id)

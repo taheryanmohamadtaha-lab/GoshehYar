@@ -202,3 +202,81 @@ public class CalcTests
         Assert.Equal(28, r.TotalDays);
     }
 }
+
+public class DateConverterTests
+{
+    [Fact]
+    public void JalaliNewYearToGregorian()
+    {
+        Assert.Equal(new DateTime(2026, 3, 21), DateConverter.JalaliToGregorian(1405, 1, 1));
+        Assert.Equal(new DateTime(2025, 3, 21), DateConverter.JalaliToGregorian(1404, 1, 1));
+    }
+
+    [Fact]
+    public void GregorianToJalali()
+    {
+        Assert.Equal((1405, 1, 1), DateConverter.GregorianToJalali(2026, 3, 21));
+    }
+
+    [Fact]
+    public void InvalidDatesGiveNull()
+    {
+        Assert.Null(DateConverter.JalaliToGregorian(1404, 12, 30)); // 1404 is not a leap year
+        Assert.Null(DateConverter.JalaliToGregorian(1403, 13, 1));
+        Assert.Null(DateConverter.GregorianToJalali(2026, 2, 30));
+        Assert.NotNull(DateConverter.JalaliToGregorian(1403, 12, 30)); // 1403 is leap
+    }
+
+    [Fact]
+    public void YearRangeAndPersianDigits()
+    {
+        var r = DateConverter.JalaliYearToGregorian(1405);
+        Assert.Equal(new DateTime(2026, 3, 21), r!.Value.Start);
+        Assert.Equal(new DateTime(2027, 3, 20), r.Value.End);
+        Assert.True(DateConverter.TryParseInt("۱۴۰۵", out var y));
+        Assert.Equal(1405, y);
+        Assert.False(DateConverter.TryParseInt("abc", out _));
+    }
+}
+
+public class FinanceToolsTests
+{
+    private static void Near(decimal expected, decimal? actual)
+    {
+        Assert.NotNull(actual);
+        Assert.Equal(expected, actual!.Value, 2);
+    }
+
+    [Fact]
+    public void SimpleInterest()
+    {
+        Near(200000m, FinanceTools.SimpleInterest(1_000_000m, 20m, 365m));
+        Near(16438.36m, FinanceTools.SimpleInterest(1_000_000m, 20m, 30m));
+        Assert.Null(FinanceTools.SimpleInterest(-1m, 20m, 30m));
+    }
+
+    [Fact]
+    public void CompoundAndEffective()
+    {
+        Near(1254.4m, FinanceTools.CompoundFinal(1000m, 12m, 2m, 1));
+        Near(12.68m, FinanceTools.EffectiveAnnualPercent(12m, 12));
+    }
+
+    [Fact]
+    public void RateConversions()
+    {
+        Near(0.05m, FinanceTools.DailyPercent(20m));
+        Near(1.67m, FinanceTools.MonthlyPercent(20m));
+        Near(36.5m, FinanceTools.AnnualFromDailyPercent(0.1m));
+    }
+
+    [Fact]
+    public void SavingsAndLoan()
+    {
+        Near(1200m, FinanceTools.SavingsFinal(0m, 100m, 0m, 12));
+        Near(1268.25m, FinanceTools.SavingsFinal(0m, 100m, 12m, 12));
+        Near(8884.88m, FinanceTools.LoanPayment(100000m, 12m, 12));
+        Near(1000m, FinanceTools.LoanPayment(12000m, 0m, 12));
+        Assert.Null(FinanceTools.LoanPayment(1000m, 10m, 0));
+    }
+}

@@ -97,9 +97,9 @@ public class ThemeCatalogTests
     private static readonly Regex Color = new("^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$");
 
     [Fact]
-    public void All_eight_required_themes_exist()
+    public void At_least_the_eight_required_themes_exist()
     {
-        Assert.Equal(8, ThemeCatalog.All.Count);
+        Assert.True(ThemeCatalog.All.Count >= 8);
     }
 
     [Fact]

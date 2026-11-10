@@ -42,7 +42,18 @@ public partial class PanelWindow : Window
     private readonly DispatcherTimer _hideTimer;
     private readonly IntPtr _handle;
 
-    private PanelState _state = PanelState.Hidden;
+    private PanelState _stateValue = PanelState.Hidden;
+
+    /// <summary>Panel state. The live CPU/RAM text on the monitor button runs only while the panel is revealed.</summary>
+    private PanelState _state
+    {
+        get => _stateValue;
+        set
+        {
+            _stateValue = value;
+            _viewModel?.SetLive(value == PanelState.Revealed);
+        }
+    }
     private bool _hideArmed;
     private bool _suppressedByFullscreen;
 

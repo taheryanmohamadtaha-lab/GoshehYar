@@ -88,6 +88,7 @@ public sealed class AppSettings
     public string RecordingsFolder { get; set; } = "";
     public AudioFormat RecordingFormat { get; set; } = AudioFormat.Wav;
     public string MicrophoneName { get; set; } = "";
+    public RecordingSource RecordingSource { get; set; } = RecordingSource.Microphone;
 
     // ----- Music player -----
     public double MusicVolume { get; set; } = 0.7;
@@ -199,6 +200,7 @@ public sealed class AppSettings
 
         if (!Enum.IsDefined(ScreenshotFormat)) ScreenshotFormat = ImageFormat.Png;
         if (!Enum.IsDefined(RecordingFormat)) RecordingFormat = AudioFormat.Wav;
+        if (!Enum.IsDefined(RecordingSource)) RecordingSource = RecordingSource.Microphone;
         if (!Enum.IsDefined(MusicRepeat)) MusicRepeat = RepeatMode.All;
         if (!Enum.IsDefined(BackupFrequency)) BackupFrequency = BackupFrequency.Daily;
         ScreenshotFolder ??= "";

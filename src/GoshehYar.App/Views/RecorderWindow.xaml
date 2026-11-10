@@ -55,8 +55,26 @@
 
         <!-- settings -->
         <StackPanel Grid.Row="2" Margin="0,12,0,0">
-            <TextBlock Text="{Binding [rec_mic]}" Margin="0,0,0,3" />
-            <DockPanel>
+            <TextBlock Text="{Binding [rec_source]}" Margin="0,0,0,3" />
+            <StackPanel Orientation="Horizontal" IsEnabled="{Binding IsIdle}">
+                <RadioButton Content="{Binding [rec_source_mic]}" IsChecked="{Binding IsMicSource}" GroupName="RecSource" Margin="0,0,18,0" />
+                <RadioButton Content="{Binding [rec_source_system]}" IsChecked="{Binding IsSystemSource}" GroupName="RecSource" />
+            </StackPanel>
+            <TextBlock Text="{Binding [rec_system_note]}" TextWrapping="Wrap" Margin="0,4,0,0" Opacity="0.7" FontSize="11">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding MicPanelVisible}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <TextBlock Text="{Binding [rec_mic]}" Margin="0,10,0,3" Visibility="{Binding MicPanelVisible, Converter={StaticResource BoolToVisibility}}" />
+            <DockPanel Visibility="{Binding MicPanelVisible, Converter={StaticResource BoolToVisibility}}">
                 <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Padding="9,6"
                         ToolTip="{Binding [rec_refresh_mics]}" Command="{Binding RefreshMicsCommand}" />
                 <ComboBox ItemsSource="{Binding Microphones}" SelectedItem="{Binding SelectedMic}" IsEnabled="{Binding IsIdle}" />

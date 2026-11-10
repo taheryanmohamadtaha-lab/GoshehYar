@@ -56,6 +56,9 @@ public enum ImageFormat { Png, Jpg }
 
 public enum AudioFormat { Wav, Mp3 }
 
+/// <summary>What the recorder records: the microphone, or the sound the computer itself plays (one at a time).</summary>
+public enum RecordingSource { Microphone, SystemSound }
+
 public enum RepeatMode { None, One, All }
 
 public enum BackupFrequency { Daily, Weekly }

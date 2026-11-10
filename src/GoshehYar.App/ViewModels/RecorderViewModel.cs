@@ -108,6 +108,30 @@ public sealed class RecorderViewModel : LocalizedViewModel
         }
     }
 
+    public bool IsMicSource
+    {
+        get => S.RecordingSource == RecordingSource.Microphone;
+        set { if (value) SetSource(RecordingSource.Microphone); }
+    }
+
+    public bool IsSystemSource
+    {
+        get => S.RecordingSource == RecordingSource.SystemSound;
+        set { if (value) SetSource(RecordingSource.SystemSound); }
+    }
+
+    private void SetSource(RecordingSource source)
+    {
+        if (S.RecordingSource == source) return;
+        Controller.Settings.Update(s => s.RecordingSource = source);
+        OnPropertyChanged(nameof(IsMicSource));
+        OnPropertyChanged(nameof(IsSystemSource));
+        OnPropertyChanged(nameof(MicPanelVisible));
+    }
+
+    /// <summary>The microphone picker is only needed for microphone recording.</summary>
+    public bool MicPanelVisible => S.RecordingSource == RecordingSource.Microphone;
+
     public AudioFormat Format
     {
         get => S.RecordingFormat;
@@ -159,12 +183,17 @@ public sealed class RecorderViewModel : LocalizedViewModel
     {
         if (!IsIdle) return;
 
-        var mics = Microphones.ToList();
-        var index = mics.IndexOf(SelectedMic);
-        if (mics.Count == 0 || index < 0)
+        var source = S.RecordingSource;
+        var index = 0;
+        if (source == RecordingSource.Microphone)
         {
-            Status = this["rec_no_mic"];
-            return;
+            var mics = Microphones.ToList();
+            index = mics.IndexOf(SelectedMic);
+            if (mics.Count == 0 || index < 0)
+            {
+                Status = this["rec_no_mic"];
+                return;
+            }
         }
 
         try
@@ -172,13 +201,14 @@ public sealed class RecorderViewModel : LocalizedViewModel
             var folder = ResolveFolder();
             var name = NoteTools.SafeFileName(FileName, DefaultName());
             var path = UniquePath(Path.Combine(folder, name + ".wav"));
-            Recorder.Start(index, path);
+            Recorder.Start(source, index, path);
             Status = Fmt("rec_started", Path.GetFileName(path));
         }
         catch (Exception ex)
         {
             Logger.Error("Could not start recording.", ex);
-            Status = this["rec_error_start"] + " (" + ex.GetType().Name + ": " + ex.Message + ")";
+            Status = this[S.RecordingSource == RecordingSource.SystemSound ? "rec_error_start_system" : "rec_error_start"]
+                + " (" + ex.GetType().Name + ": " + ex.Message + ")";
         }
     }
 

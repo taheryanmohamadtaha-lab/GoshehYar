@@ -44,11 +44,40 @@
                                 Width="{Binding DataContext.ButtonSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                 Height="{Binding DataContext.ButtonSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                 Margin="{Binding DataContext.ItemMargin, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
-                            <TextBlock Text="{Binding Glyph}"
-                                       FontFamily="Segoe MDL2 Assets"
-                                       FontSize="{Binding DataContext.IconFontSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" />
+                            <Grid>
+                                <TextBlock Text="{Binding Glyph}"
+                                           FontFamily="Segoe MDL2 Assets"
+                                           FontSize="{Binding DataContext.IconFontSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasLive}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text="{Binding LiveText}"
+                                           FontSize="{Binding DataContext.LiveFontSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                           FontWeight="SemiBold"
+                                           TextAlignment="Center"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasLive}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
                         </Button>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

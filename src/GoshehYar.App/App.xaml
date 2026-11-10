@@ -23,10 +23,10 @@
                             </Grid.ColumnDefinitions>
                             <Border x:Name="Box" Width="22" Height="22" CornerRadius="5" BorderThickness="1.5"
                                     Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                    VerticalAlignment="Center">
+                                    VerticalAlignment="Center" FlowDirection="LeftToRight">
                                 <Path x:Name="Mark" Data="M 4.5,11.5 L 9.5,16.5 L 17.5,5.5" Stroke="{TemplateBinding Foreground}"
                                       StrokeThickness="3.2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                      Stretch="None" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                      Stretch="None" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" FlowDirection="LeftToRight" />
                             </Border>
                             <ContentPresenter Grid.Column="1" Margin="9,0,0,0" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               HorizontalAlignment="Left" RecognizesAccessKey="True" />

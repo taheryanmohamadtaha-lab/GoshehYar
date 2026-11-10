@@ -37,7 +37,9 @@ public partial class RegionSelectWindow : Window
         BaseImage.Source = source;
         BrightImage.Source = source;
         HintText.Text = Loc.Get("shot_region_hint", language);
-        FlowDirection = language == AppLanguage.Persian ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+        // The picture and the mouse coordinates must never be mirrored, so only the hint text follows the language.
+        FlowDirection = FlowDirection.LeftToRight;
+        HintText.FlowDirection = language == AppLanguage.Persian ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
 
         // Moving the window to another monitor changes its DPI; put it back on the exact monitor rectangle afterwards.
         DpiChanged += (_, _) => Dispatcher.BeginInvoke(new Action(Place), DispatcherPriority.Background);
